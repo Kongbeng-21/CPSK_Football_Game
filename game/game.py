@@ -9,16 +9,12 @@ WIDTH = 1280
 HEIGHT = 720
 
 class Game:
-
     def __init__(self):
-
         self.screen = pygame.display.set_mode((WIDTH,HEIGHT))
         pygame.display.set_caption("SKE vs CPE Soccer")
-
         self.clock = pygame.time.Clock()
-
         self.field = pygame.image.load("assets/field.png")
-
+        
         ske_img = pygame.image.load("assets/ske_player.png")
         cpe_img = pygame.image.load("assets/cpe_player.png")
 
@@ -49,11 +45,8 @@ class Game:
         self.menu = Menu(self.screen,self.font_big,self.font_mid)
 
     def run(self):
-
         while True:
-
             for event in pygame.event.get():
-
                 if event.type == pygame.QUIT:
                     pygame.quit()
                     sys.exit()
@@ -64,12 +57,9 @@ class Game:
                         self.state = "gameplay"
 
                 if self.state == "gameplay":
-
                     if event.type == pygame.KEYDOWN:
-
                         if event.key == pygame.K_e:
                             self.player1.kick(self.ball)
-
                         if event.key == pygame.K_SPACE:
                             self.player2.kick(self.ball)
 
@@ -79,19 +69,13 @@ class Game:
                 self.menu.draw()
 
             elif self.state == "gameplay":
-
                 self.screen.blit(self.field,(0,0))
-
                 keys = pygame.key.get_pressed()
-
                 self.player1.move(keys)
                 self.player2.move(keys)
-
                 self.player1.update()
                 self.player2.update()
-
                 self.ball.update()
-
                 self.player1.draw(self.screen)
                 self.player2.draw(self.screen)
                 self.ball.draw(self.screen)
