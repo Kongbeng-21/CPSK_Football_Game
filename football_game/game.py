@@ -70,16 +70,55 @@ class Game:
                 self.menu.draw()
 
             elif self.state == "gameplay":
+
                 self.screen.blit(self.field,(0,0))
+
                 keys = pygame.key.get_pressed()
+
                 self.player1.move(keys)
                 self.player2.move(keys)
 
                 self.player1.update()
                 self.player2.update()
 
+                # player collision
+                if self.player1.rect.colliderect(self.player2.rect):
+
+                    if self.player1.x < self.player2.x:
+                        self.player1.x -= 5
+                        self.player2.x += 5
+                    else:
+                        self.player1.x += 5
+                        self.player2.x -= 5
+
+                    self.player1.rect.x = self.player1.x
+                    self.player2.rect.x = self.player2.x
+
+
+                # ball update
                 self.ball.update()
 
+
+                # ball collision
+                if self.ball.rect.colliderect(self.player1.rect):
+
+                    self.ball.x = self.player1.x + 120
+                    self.ball.vx = 8
+                    self.ball.vy = -5
+
+
+                if self.ball.rect.colliderect(self.player2.rect):
+
+                    self.ball.x = self.player2.x - 60
+                    self.ball.vx = -8
+                    self.ball.vy = -5
+
+
+                self.ball.rect.x = self.ball.x
+                self.ball.rect.y = self.ball.y
+
+
+                # draw objects
                 self.player1.draw(self.screen)
                 self.player2.draw(self.screen)
                 self.ball.draw(self.screen)

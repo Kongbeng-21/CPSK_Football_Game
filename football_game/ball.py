@@ -8,10 +8,10 @@ ball_img = pygame.transform.scale(ball_img,(60,60))
 class Ball:
     def __init__(self):
         self.x = WIDTH//2
-        self.y = 300
-
+        self.y = 390
         self.vx = random.choice([-6,6])
         self.vy = -5
+        self.rect = pygame.Rect(self.x, self.y, 60, 60)
 
     def update(self):
 
@@ -20,8 +20,8 @@ class Ball:
         self.x += self.vx
         self.y += self.vy
 
-        if self.y > 650:
-            self.y = 650
+        if self.y > 390:
+            self.y = 390
             self.vy *= -0.7
 
         if self.y < 0:
@@ -35,6 +35,9 @@ class Ball:
         if self.x > WIDTH - 60:
             self.x = WIDTH - 60
             self.vx *= -1
+        
+        self.rect.x = self.x
+        self.rect.y = self.y
 
     def draw(self,screen):
         screen.blit(ball_img,(self.x,self.y))

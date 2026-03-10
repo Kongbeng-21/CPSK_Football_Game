@@ -1,13 +1,15 @@
+import pygame
 class Player:
     def __init__(self,x,image,controls):
         self.x = x
-        self.y = 520
+        self.y = 360
         self.vx = 0
         self.vy = 0
         self.image = image
         self.controls = controls
         self.width = 100
         self.height = 100
+        self.rect = pygame.Rect(self.x, self.y, 120, 120)
 
     def move(self,keys):
         if keys[self.controls["left"]]:
@@ -30,12 +32,17 @@ class Player:
                 ball.vx = -10
 
     def update(self):
+
         self.vy += 0.8
         self.x += self.vx
         self.y += self.vy
-        if self.y > 520:
-            self.y = 520
+
+        if self.y > 360:
+            self.y = 360
             self.vy = 0
+
+        self.rect.x = self.x
+        self.rect.y = self.y
 
     def draw(self,screen):
         screen.blit(self.image,(self.x,self.y))
