@@ -49,24 +49,32 @@ class Game:
 
     def run(self):
         while True:
+
             for event in pygame.event.get():
+
                 if event.type == pygame.QUIT:
                     pygame.quit()
                     sys.exit()
-                    
+
                 if self.state == "menu":
                     self.menu.handle_input(event)
                     if self.menu.start_game:
                         self.state = "gameplay"
+
                 if self.state == "gameplay":
+
                     if event.type == pygame.KEYDOWN:
+
                         if event.key == pygame.K_e:
                             self.player1.kick(self.ball)
+
                         if event.key == pygame.K_SPACE:
                             self.player2.kick(self.ball)
+
             self.screen.fill((0,0,0))
 
             if self.state == "menu":
+
                 self.menu.draw()
 
             elif self.state == "gameplay":
@@ -81,7 +89,25 @@ class Game:
                 self.player1.update()
                 self.player2.update()
 
-                # player collision
+                if self.player1.x < 0:
+                    self.player1.x = 0
+                    self.player1.vx = 0
+
+                if self.player1.x > WIDTH - 120:
+                    self.player1.x = WIDTH - 120
+                    self.player1.vx = 0
+
+                if self.player2.x < 0:
+                    self.player2.x = 0
+                    self.player2.vx = 0
+
+                if self.player2.x > WIDTH - 120:
+                    self.player2.x = WIDTH - 120
+                    self.player2.vx = 0
+
+                self.player1.rect.x = self.player1.x
+                self.player2.rect.x = self.player2.x
+
                 if self.player1.rect.colliderect(self.player2.rect):
 
                     if self.player1.x < self.player2.x:
@@ -94,31 +120,23 @@ class Game:
                     self.player1.rect.x = self.player1.x
                     self.player2.rect.x = self.player2.x
 
-
-                # ball update
                 self.ball.update()
 
-
-                # ball collision
                 if self.ball.rect.colliderect(self.player1.rect):
 
                     self.ball.x = self.player1.x + 120
-                    self.ball.vx = 8
-                    self.ball.vy = -5
-
+                    self.ball.vx = 10
+                    self.ball.vy = -6
 
                 if self.ball.rect.colliderect(self.player2.rect):
 
                     self.ball.x = self.player2.x - 60
-                    self.ball.vx = -8
-                    self.ball.vy = -5
-
+                    self.ball.vx = -10
+                    self.ball.vy = -6
 
                 self.ball.rect.x = self.ball.x
                 self.ball.rect.y = self.ball.y
 
-
-                # draw objects
                 self.player1.draw(self.screen)
                 self.player2.draw(self.screen)
                 self.ball.draw(self.screen)
