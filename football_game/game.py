@@ -12,11 +12,17 @@ class Game:
     def __init__(self):
         self.screen = pygame.display.set_mode((WIDTH,HEIGHT))
         pygame.display.set_caption("SKE vs CPE Soccer")
+
         self.clock = pygame.time.Clock()
+
         self.field = pygame.image.load("assets/field.png")
-        
+        self.field = pygame.transform.scale(self.field,(WIDTH,HEIGHT))
+
         ske_img = pygame.image.load("assets/ske_player.png")
         cpe_img = pygame.image.load("assets/cpe_player.png")
+
+        ske_img = pygame.transform.scale(ske_img,(120,120))
+        cpe_img = pygame.transform.scale(cpe_img,(120,120))
 
         self.player1 = Player(200,ske_img,{
             "left":pygame.K_a,
@@ -34,9 +40,6 @@ class Game:
 
         self.ball = Ball()
 
-        self.score_ske = 0
-        self.score_cpe = 0
-
         self.state = "menu"
 
         self.font_big = pygame.font.SysFont("Arial",80)
@@ -50,19 +53,17 @@ class Game:
                 if event.type == pygame.QUIT:
                     pygame.quit()
                     sys.exit()
-
+                    
                 if self.state == "menu":
                     self.menu.handle_input(event)
                     if self.menu.start_game:
                         self.state = "gameplay"
-
                 if self.state == "gameplay":
                     if event.type == pygame.KEYDOWN:
                         if event.key == pygame.K_e:
                             self.player1.kick(self.ball)
                         if event.key == pygame.K_SPACE:
                             self.player2.kick(self.ball)
-
             self.screen.fill((0,0,0))
 
             if self.state == "menu":
@@ -73,9 +74,12 @@ class Game:
                 keys = pygame.key.get_pressed()
                 self.player1.move(keys)
                 self.player2.move(keys)
+
                 self.player1.update()
                 self.player2.update()
+
                 self.ball.update()
+
                 self.player1.draw(self.screen)
                 self.player2.draw(self.screen)
                 self.ball.draw(self.screen)
