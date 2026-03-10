@@ -11,17 +11,15 @@ class Player:
         self.height = 100
         self.rect = pygame.Rect(self.x, self.y, 120, 120)
 
-    def move(self,keys):
+    def move(self, keys):
+        self.vx = 0
         if keys[self.controls["left"]]:
-            self.vx = -5
+            self.vx -= 5
 
-        elif keys[self.controls["right"]]:
-            self.vx = 5
+        if keys[self.controls["right"]]:
+            self.vx += 5
 
-        else:
-            self.vx = 0
-
-        if keys[self.controls["jump"]] and self.y >= 520:
+        if keys[self.controls["jump"]] and self.y >= 360:
             self.vy = -15
 
     def kick(self,ball):

@@ -11,7 +11,7 @@ HEIGHT = 720
 class Game:
     def __init__(self):
         self.screen = pygame.display.set_mode((WIDTH,HEIGHT))
-        pygame.display.set_caption("SKE vs CPE Soccer")
+        pygame.display.set_caption("Big Match!!!! SKE vs CPE")
 
         self.clock = pygame.time.Clock()
 
