@@ -49,9 +49,7 @@ class Game:
 
     def run(self):
         while True:
-
             for event in pygame.event.get():
-
                 if event.type == pygame.QUIT:
                     pygame.quit()
                     sys.exit()
@@ -62,23 +60,18 @@ class Game:
                         self.state = "gameplay"
 
                 if self.state == "gameplay":
-
                     if event.type == pygame.KEYDOWN:
-
                         if event.key == pygame.K_e:
                             self.player1.kick(self.ball)
-
                         if event.key == pygame.K_SPACE:
                             self.player2.kick(self.ball)
 
             self.screen.fill((0,0,0))
 
             if self.state == "menu":
-
                 self.menu.draw()
 
             elif self.state == "gameplay":
-
                 self.screen.blit(self.field,(0,0))
 
                 keys = pygame.key.get_pressed()
@@ -109,7 +102,6 @@ class Game:
                 self.player2.rect.x = self.player2.x
 
                 if self.player1.rect.colliderect(self.player2.rect):
-
                     if self.player1.x < self.player2.x:
                         self.player1.x -= 5
                         self.player2.x += 5
@@ -121,15 +113,13 @@ class Game:
                     self.player2.rect.x = self.player2.x
 
                 self.ball.update()
-
+                
                 if self.ball.rect.colliderect(self.player1.rect):
-
                     self.ball.x = self.player1.x + 120
-                    self.ball.vx = 10
-                    self.ball.vy = -6
+                    self.ball.vx = 6
+                    self.ball.vy = -4
 
                 if self.ball.rect.colliderect(self.player2.rect):
-
                     self.ball.x = self.player2.x - 60
                     self.ball.vx = -10
                     self.ball.vy = -6
