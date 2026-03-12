@@ -21,8 +21,8 @@ class Game:
         ske_img = pygame.image.load("assets/ske_player.png")
         cpe_img = pygame.image.load("assets/cpe_player.png")
 
-        ske_img = pygame.transform.scale(ske_img,(120,120))
-        cpe_img = pygame.transform.scale(cpe_img,(120,120))
+        ske_img = pygame.transform.scale(ske_img,(120,100))
+        cpe_img = pygame.transform.scale(cpe_img,(120,100))
 
         self.player1 = Player(200,ske_img,{
             "left":pygame.K_a,
@@ -113,16 +113,29 @@ class Game:
                     self.player2.rect.x = self.player2.x
 
                 self.ball.update()
+                max_speed = 12
+
+                if self.ball.vx > max_speed:
+                    self.ball.vx = max_speed
+                if self.ball.vx < -max_speed:
+                    self.ball.vx = -max_speed
                 
                 if self.ball.rect.colliderect(self.player1.rect):
-                    self.ball.x = self.player1.x + 120
-                    self.ball.vx = 6
-                    self.ball.vy = -4
+
+                    overlap = self.player1.rect.right - self.ball.rect.left
+
+                    if overlap > 0:
+                        self.ball.x += overlap
+                        self.ball.vx = abs(self.ball.vx) + 2
+
 
                 if self.ball.rect.colliderect(self.player2.rect):
-                    self.ball.x = self.player2.x - 60
-                    self.ball.vx = -10
-                    self.ball.vy = -6
+
+                    overlap = self.ball.rect.right - self.player2.rect.left
+
+                    if overlap > 0:
+                        self.ball.x -= overlap
+                        self.ball.vx = -abs(self.ball.vx) - 2
 
                 self.ball.rect.x = self.ball.x
                 self.ball.rect.y = self.ball.y

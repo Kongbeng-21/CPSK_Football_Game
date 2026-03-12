@@ -23,11 +23,16 @@ class Player:
             self.vy = -15
 
     def kick(self,ball):
-        if abs(self.x-ball.x) < 120:
-            if self.x < ball.x:
-                ball.vx = 10
+        kick_range = 150
+        player_center = self.x + 60
+        ball_center = ball.x + 30
+
+        if abs(player_center - ball_center) < kick_range:
+            if player_center < ball_center:
+                ball.vx += 20
             else:
-                ball.vx = -10
+                ball.vx -= 20
+            ball.vy -= 12
 
     def update(self):
 
