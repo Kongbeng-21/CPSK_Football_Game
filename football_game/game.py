@@ -10,49 +10,50 @@ HEIGHT = 720
 
 class Game:
     def __init__(self):
-        self.screen = pygame.display.set_mode((WIDTH,HEIGHT))
+        self.screen = pygame.display.set_mode((WIDTH, HEIGHT))
         pygame.display.set_caption("Big Match!!!! SKE vs CPE")
 
         self.clock = pygame.time.Clock()
 
         self.field = pygame.image.load("assets/field.png")
-        self.field = pygame.transform.scale(self.field,(WIDTH,HEIGHT))
+        self.field = pygame.transform.scale(self.field, (WIDTH, HEIGHT))
 
         ske_img = pygame.image.load("assets/ske_player.png")
         cpe_img = pygame.image.load("assets/cpe_player.png")
 
-        ske_img = pygame.transform.scale(ske_img,(120,100))
-        cpe_img = pygame.transform.scale(cpe_img,(120,100))
+        ske_img = pygame.transform.scale(ske_img, (120, 100))
+        cpe_img = pygame.transform.scale(cpe_img, (120, 100))
 
-        self.player1 = Player(200,ske_img,{
-            "left":pygame.K_a,
-            "right":pygame.K_d,
-            "jump":pygame.K_w,
-            "kick":pygame.K_e
+        self.player1 = Player(200, ske_img, {
+            "left": pygame.K_a,
+            "right": pygame.K_d,
+            "jump": pygame.K_w,
+            "kick": pygame.K_e
         })
 
-        self.player2 = Player(1000,cpe_img,{
-            "left":pygame.K_LEFT,
-            "right":pygame.K_RIGHT,
-            "jump":pygame.K_UP,
-            "kick":pygame.K_SPACE
+        self.player2 = Player(1000, cpe_img, {
+            "left": pygame.K_LEFT,
+            "right": pygame.K_RIGHT,
+            "jump": pygame.K_UP,
+            "kick": pygame.K_SPACE
         })
 
         self.ball = Ball()
 
         self.state = "menu"
 
-        self.font_big = pygame.font.SysFont("Arial",80)
-        self.font_mid = pygame.font.SysFont("Arial",40)
+        self.font_big = pygame.font.SysFont("Arial", 80, bold=True)
+        self.font_mid = pygame.font.SysFont("Arial", 40)
+        self.font_score = pygame.font.SysFont("Arial", 64, bold=True)
 
-        self.menu = Menu(self.screen,self.font_big,self.font_mid)
-        
+
+        self.menu = Menu(self.screen, self.font_big, self.font_mid)
+
         self.score_p1 = 0
         self.score_p2 = 0
-        
+
         self.left_goal = Goal(0, 420, 40, 120, "left")
         self.right_goal = Goal(WIDTH - 40, 420, 40, 120, "right")
-
 
     def run(self):
         while True:
@@ -73,13 +74,13 @@ class Game:
                         if event.key == pygame.K_SPACE:
                             self.player2.kick(self.ball)
 
-            self.screen.fill((0,0,0))
+            self.screen.fill((0, 0, 0))
 
             if self.state == "menu":
                 self.menu.draw()
 
             elif self.state == "gameplay":
-                self.screen.blit(self.field,(0,0))
+                self.screen.blit(self.field, (0, 0))
 
                 keys = pygame.key.get_pressed()
 
@@ -120,7 +121,6 @@ class Game:
                     self.player2.rect.x = self.player2.x
 
                 self.ball.update()
-                max_speed = 12
 
                 if self.left_goal.check_goal(self.ball):
                     self.score_p2 += 1
@@ -130,30 +130,40 @@ class Game:
                     self.score_p1 += 1
                     self.ball.reset_position()
 
+                max_speed = 12
                 if self.ball.vx > max_speed:
                     self.ball.vx = max_speed
                 if self.ball.vx < -max_speed:
                     self.ball.vx = -max_speed
-                
+
                 if self.ball.rect.colliderect(self.player1.rect):
-
                     overlap = self.player1.rect.right - self.ball.rect.left
-
                     if overlap > 0:
                         self.ball.x += overlap
                         self.ball.vx = abs(self.ball.vx) + 2
 
-
                 if self.ball.rect.colliderect(self.player2.rect):
-
                     overlap = self.ball.rect.right - self.player2.rect.left
-
                     if overlap > 0:
                         self.ball.x -= overlap
                         self.ball.vx = -abs(self.ball.vx) - 2
 
                 self.ball.rect.x = self.ball.x
                 self.ball.rect.y = self.ball.y
+
+                left_score_text = self.font_score.render(
+                    str(self.score_p1), True, (255, 255, 255)
+                )
+                right_score_text = self.font_score.render(
+                    str(self.score_p2), True, (255, 255, 255)
+                )
+
+
+                left_score_rect = left_score_text.get_rect(center=(520, 105))
+                right_score_rect = right_score_text.get_rect(center=(760, 105))
+
+                self.screen.blit(left_score_text, left_score_rect)
+                self.screen.blit(right_score_text, right_score_rect)
 
                 self.player1.draw(self.screen)
                 self.player2.draw(self.screen)
