@@ -46,6 +46,13 @@ class Game:
         self.font_mid = pygame.font.SysFont("Arial",40)
 
         self.menu = Menu(self.screen,self.font_big,self.font_mid)
+        
+        self.score_p1 = 0
+        self.score_p2 = 0
+        
+        self.left_goal = Goal(0, 420, 40, 120, "left")
+        self.right_goal = Goal(WIDTH - 40, 420, 40, 120, "right")
+
 
     def run(self):
         while True:
@@ -114,6 +121,14 @@ class Game:
 
                 self.ball.update()
                 max_speed = 12
+
+                if self.left_goal.check_goal(self.ball):
+                    self.score_p2 += 1
+                    self.ball.reset_position()
+
+                if self.right_goal.check_goal(self.ball):
+                    self.score_p1 += 1
+                    self.ball.reset_position()
 
                 if self.ball.vx > max_speed:
                     self.ball.vx = max_speed

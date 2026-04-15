@@ -1,9 +1,8 @@
+import pygame
 class Goal:
-    def __init__(self,x,width):
-        self.x = x
-        self.width = width
+    def __init__(self, x, y, width, height, side):
+        self.rect = pygame.Rect(x, y, width, height)
+        self.side = side
 
-    def check_goal(self,ball):
-        if ball.x < self.x + self.width:
-            return True
-        return False
+    def check_goal(self, ball):
+        return self.rect.colliderect(ball.rect)

@@ -51,3 +51,11 @@ class Ball:
 
     def draw(self,screen):
         screen.blit(ball_img,(self.x,self.y))
+        
+    def reset_position(self):
+        self.x = WIDTH // 2
+        self.y = 390
+        self.vx = random.choice([-6, 6])
+        self.vy = -5
+        self.rect.x = self.x
+        self.rect.y = self.y
