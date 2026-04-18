@@ -1,10 +1,12 @@
 import pygame
 import sys
+import pandas as pd
 from .player import Player
 from .ball import Ball
 from .goal import Goal
 from .menu import Menu
 from .timer import Timer
+from .data_logger import DataLogger
 
 WIDTH = 1280
 HEIGHT = 720
@@ -38,10 +40,15 @@ class Game:
             "jump": pygame.K_UP,
             "kick": pygame.K_SPACE
         })
-
+        self.kicks_p1 = 0
+        self.kicks_p2 = 0
+        self.jumps_p1 = 0
+        self.jumps_p2 = 0
         self.ball = Ball()
 
         self.state = "menu"
+        
+        self.logger = DataLogger()
 
         self.font_big = pygame.font.SysFont("Arial", 80, bold=True)
         self.font_mid = pygame.font.SysFont("Arial", 40)
@@ -67,6 +74,11 @@ class Game:
         self.timer = Timer(60, self.font_mid)
         self.timer.start_timer()
         self.gameover_selected = 0
+        
+        self.kicks_p1 = 0
+        self.kicks_p2 = 0
+        self.jumps_p1 = 0
+        self.jumps_p2 = 0
         
     def run(self):
         while True:
@@ -98,8 +110,10 @@ class Game:
                     if event.type == pygame.KEYDOWN:
                         if event.key == pygame.K_e:
                             self.player1.kick(self.ball)
+                            self.kicks_p1 += 1
                         if event.key == pygame.K_SPACE:
                             self.player2.kick(self.ball)
+                            self.kicks_p2 += 1
 
                 # gameover
                 elif self.state == "game_over":
@@ -125,11 +139,39 @@ class Game:
 
             # stats
             elif self.state == "stats":
-                text = self.font_big.render("Stats Page", True, (255,255,255))
+                self.screen.fill((0,0,0))
+
+                try:
+                    df = pd.read_csv("game_data.csv")
+
+                    avg_speed = round(df["ball_speed"].mean(), 2)
+                    max_speed = round(df["ball_speed"].max(), 2)
+                    total_kicks = int(df["kicks"].sum())
+                    total_jumps = int(df["jumps"].sum())
+
+                    title = self.font_big.render("GAME STATS", True, (255,255,255))
+
+                    t1 = self.font_mid.render(f"Avg Ball Speed: {avg_speed}", True, (255,255,255))
+                    t2 = self.font_mid.render(f"Max Ball Speed: {max_speed}", True, (255,255,255))
+                    t3 = self.font_mid.render(f"Total Kicks: {total_kicks}", True, (255,255,255))
+                    t4 = self.font_mid.render(f"Total Jumps: {total_jumps}", True, (255,255,255))
+
+                except:
+                    title = self.font_big.render("NO DATA YET", True, (255,255,255))
+
+                    t1 = self.font_mid.render("Play a game first!", True, (200,200,200))
+                    t2 = self.font_mid.render("", True, (200,200,200))
+                    t3 = self.font_mid.render("", True, (200,200,200))
+                    t4 = self.font_mid.render("", True, (200,200,200))
+
                 back = self.font_mid.render("Press B to go back", True, (200,200,200))
 
-                self.screen.blit(text, (400,250))
-                self.screen.blit(back, (430,400))
+                self.screen.blit(title, (400,150))
+                self.screen.blit(t1, (400,280))
+                self.screen.blit(t2, (400,340))
+                self.screen.blit(t3, (400,400))
+                self.screen.blit(t4, (400,460))
+                self.screen.blit(back, (400,550))
 
             # gameplay
             elif self.state == "gameplay":
@@ -189,6 +231,17 @@ class Game:
                 self.player1.draw(self.screen)
                 self.player2.draw(self.screen)
                 self.ball.draw(self.screen)
+                
+                ball_speed = abs(self.ball.vx)
+                score_diff = self.score_p1 - self.score_p2
+
+                self.logger.log(
+                    self.timer.time_left,
+                    ball_speed,
+                    score_diff,
+                    self.kicks_p1 + self.kicks_p2,
+                    self.jumps_p1 + self.jumps_p2
+)
 
             # gameover
             elif self.state == "game_over":
@@ -208,6 +261,6 @@ class Game:
 
                     rect = text.get_rect(center=(640, 350 + i*60))
                     self.screen.blit(text, rect)
-
+                    
             pygame.display.update()
             self.clock.tick(60)
