@@ -1,6 +1,7 @@
 import pygame
 import sys
 import pandas as pd
+import math
 from .player import Player
 from .ball import Ball
 from .goal import Goal
@@ -69,6 +70,15 @@ class Game:
         self.kicks_p2 = 0
         self.jumps_p1 = 0
         self.jumps_p2 = 0
+        
+        self.touches_p1 = 0
+        self.touches_p2 = 0
+        self.shots_p1 = 0
+        self.shots_p2 = 0
+
+        self.prev_touch_p1 = False
+        self.prev_touch_p2 = False
+
 
         self.left_goal = Goal(0, 300, 40, 120, "left")
         self.right_goal = Goal(WIDTH - 40, 300, 40, 120, "right")
@@ -100,10 +110,104 @@ class Game:
         self.kicks_p2 = 0
         self.jumps_p1 = 0
         self.jumps_p2 = 0
+        
+        self.touches_p1 = 0
+        self.touches_p2 = 0
+        self.shots_p1 = 0
+        self.shots_p2 = 0
+
+        self.prev_touch_p1 = False
+        self.prev_touch_p2 = False
+
 
         self.last_logged_time = -1
         self.prev_kicks = 0
         self.prev_jumps = 0
+
+    def get_distance_to_ball(self, player):
+        px = player.x + player.width / 2
+        py = player.y + player.height / 2
+
+        bx = self.ball.x + self.ball.radius
+        by = self.ball.y + self.ball.radius
+
+        return math.sqrt((bx - px) ** 2 + (by - py) ** 2)
+
+    def is_kick_in_range(self, player):
+        return self.get_distance_to_ball(player) < player.radius + self.ball.radius + 30
+
+    def get_possession(self):
+        dist_p1 = self.get_distance_to_ball(self.player1)
+        dist_p2 = self.get_distance_to_ball(self.player2)
+
+        if dist_p1 < dist_p2:
+            return "SKE"
+        return "CPE"
+
+    def get_ball_zone(self):
+        if self.ball.x < WIDTH / 3:
+            return "LEFT"
+        elif self.ball.x < WIDTH * 2 / 3:
+            return "CENTER"
+        return "RIGHT"
+
+    def get_attacking_side(self):
+        if self.ball.x < WIDTH * 0.4:
+            return "CPE_ATTACK"
+        elif self.ball.x > WIDTH * 0.6:
+            return "SKE_ATTACK"
+        return "NEUTRAL"
+
+    def get_winner_now(self):
+        if self.score_p1 > self.score_p2:
+            return "SKE"
+        elif self.score_p2 > self.score_p1:
+            return "CPE"
+        return "DRAW"
+
+    def update_touch_stats(self):
+        touching_p1 = self.get_distance_to_ball(self.player1) < self.player1.radius + self.ball.radius + 5
+        touching_p2 = self.get_distance_to_ball(self.player2) < self.player2.radius + self.ball.radius + 5
+
+        if touching_p1 and not self.prev_touch_p1:
+            self.touches_p1 += 1
+
+        if touching_p2 and not self.prev_touch_p2:
+            self.touches_p2 += 1
+
+        self.prev_touch_p1 = touching_p1
+        self.prev_touch_p2 = touching_p2
+
+    def log_stats_once_per_second(self):
+        current_time = self.timer.duration - self.timer.time_left
+
+        if current_time == self.last_logged_time:
+            return
+
+        self.last_logged_time = current_time
+
+        ball_speed = round(math.sqrt(self.ball.vx ** 2 + self.ball.vy ** 2), 2)
+        score_diff = self.score_p1 - self.score_p2
+
+        self.logger.log([
+            current_time,
+            ball_speed,
+            self.score_p1,
+            self.score_p2,
+            score_diff,
+            self.kicks_p1,
+            self.kicks_p2,
+            self.jumps_p1,
+            self.jumps_p2,
+            self.get_possession(),
+            self.get_ball_zone(),
+            self.get_attacking_side(),
+            self.touches_p1,
+            self.touches_p2,
+            self.shots_p1,
+            self.shots_p2,
+            self.get_winner_now(),
+        ])
 
     def run(self):
         while True:
@@ -140,13 +244,30 @@ class Game:
 
                 elif self.state == "gameplay":
                     if event.type == pygame.KEYDOWN:
+                        if event.key == pygame.K_w:
+                            if self.player1.vy == 0:
+                                self.jumps_p1 += 1
+
+                        if event.key == pygame.K_UP:
+                            if self.player2.vy == 0:
+                                self.jumps_p2 += 1
+
                         if event.key == pygame.K_e:
+                            if self.is_kick_in_range(self.player1):
+                                if self.player1.facing_right:
+                                    self.shots_p1 += 1
+
                             self.player1.kick(self.ball)
                             self.kicks_p1 += 1
 
                         if event.key == pygame.K_SPACE:
+                            if self.is_kick_in_range(self.player2):
+                                if not self.player2.facing_right:
+                                    self.shots_p2 += 1
+
                             self.player2.kick(self.ball)
                             self.kicks_p2 += 1
+
 
                 elif self.state == "game_over":
                     if event.type == pygame.KEYDOWN:
@@ -206,8 +327,8 @@ class Game:
 
                     avg_speed = round(df["ball_speed"].mean(), 2)
                     max_speed = round(df["ball_speed"].max(), 2)
-                    total_kicks = int(df["kicks"].sum())
-                    total_jumps = int(df["jumps"].sum())
+                    total_kicks = f"SKE {int(df['kicks_p1'].max())} / CPE {int(df['kicks_p2'].max())}"
+                    total_jumps = f"SKE {int(df['jumps_p1'].max())} / CPE {int(df['jumps_p2'].max())}"
 
                     stats = [
                         ("AVG BALL SPEED", avg_speed, (170, 255, 170)),
@@ -281,6 +402,9 @@ class Game:
                 self.player1.collide_with_player(self.player2)
                 self.player1.collide_with_ball(self.ball)
                 self.player2.collide_with_ball(self.ball)
+                self.update_touch_stats()
+                self.log_stats_once_per_second()
+
 
                 if self.left_goal.check_goal(self.ball):
                     self.score_p2 += 1
