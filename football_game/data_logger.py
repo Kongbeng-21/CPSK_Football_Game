@@ -5,7 +5,9 @@ class DataLogger:
     def __init__(self, filename="game_data.csv"):
         self.filename = filename
         self.headers = [
+            "match_id",
             "time",
+            "match_duration",
             "ball_speed",
             "score_p1",
             "score_p2",

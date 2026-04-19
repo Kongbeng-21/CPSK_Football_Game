@@ -56,6 +56,8 @@ class Game:
         self.state = "menu"
 
         self.logger = DataLogger()
+        self.match_id = 0
+
 
         self.font_big = pygame.font.SysFont("Avenir Next Condensed", 80, bold=True)
         self.font_mid = pygame.font.SysFont("Avenir Next Condensed", 40)
@@ -92,6 +94,7 @@ class Game:
         self.prev_jumps = 0
 
     def reset_game(self):
+        self.match_id += 1
         self.score_p1 = 0
         self.score_p2 = 0
 
@@ -190,24 +193,28 @@ class Game:
         score_diff = self.score_p1 - self.score_p2
 
         self.logger.log([
-            current_time,
-            ball_speed,
-            self.score_p1,
-            self.score_p2,
-            score_diff,
-            self.kicks_p1,
-            self.kicks_p2,
-            self.jumps_p1,
-            self.jumps_p2,
-            self.get_possession(),
-            self.get_ball_zone(),
-            self.get_attacking_side(),
-            self.touches_p1,
-            self.touches_p2,
-            self.shots_p1,
-            self.shots_p2,
-            self.get_winner_now(),
-        ])
+        self.match_id,
+        current_time,
+        self.timer.duration,
+        ball_speed,
+        self.score_p1,
+        self.score_p2,
+        score_diff,
+        self.kicks_p1,
+        self.kicks_p2,
+        self.jumps_p1,
+        self.jumps_p2,
+        self.get_possession(),
+        self.get_ball_zone(),
+        self.get_attacking_side(),
+        self.touches_p1,
+        self.touches_p2,
+        self.shots_p1,
+        self.shots_p2,
+        self.get_winner_now(),
+    ])
+
+
 
     def run(self):
         while True:

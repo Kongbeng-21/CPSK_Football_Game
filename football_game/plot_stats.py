@@ -32,16 +32,30 @@ axes[1, 1].set_title("Attacking Side")
 axes[1, 1].set_xlabel("Side")
 axes[1, 1].set_ylabel("Count")
 
-shot_data = {
-    "SKE Shots": df["shots_p1"].max(),
-    "CPE Shots": df["shots_p2"].max(),
-    "SKE Touches": df["touches_p1"].max(),
-    "CPE Touches": df["touches_p2"].max(),
-}
+shot_labels = [
+    "SKE Shots",
+    "CPE Shots",
+    "SKE Touches",
+    "CPE Touches",
+]
 
-axes[1, 2].bar(shot_data.keys(), shot_data.values(), color=["gold", "dodgerblue", "lightgreen", "white"])
+shot_values = [
+    int(df["shots_p1"].max()),
+    int(df["shots_p2"].max()),
+    int(df["touches_p1"].max()),
+    int(df["touches_p2"].max()),
+]
+
+axes[1, 2].bar(
+    shot_labels,
+    shot_values,
+    color=["gold", "dodgerblue", "lightgreen", "white"],
+    edgecolor="black"
+)
 axes[1, 2].set_title("Shots and Touches")
+axes[1, 2].set_ylabel("Count")
 axes[1, 2].tick_params(axis="x", rotation=20)
+
 
 plt.tight_layout()
 plt.savefig("game_statistics.png", dpi=300)
