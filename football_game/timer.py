@@ -19,4 +19,5 @@ class Timer:
 
     def draw_timer(self, screen):
         timer_text = self.font.render(f"{self.time_left}", True, (255,255,255))
-        screen.blit(timer_text, (30, 30))
+        rect = timer_text.get_rect(center=(640, 100))
+        screen.blit(timer_text, rect)

@@ -4,7 +4,7 @@ import pandas as pd
 from .player import Player
 from .ball import Ball
 from .goal import Goal
-from .menu import Menu
+from .menu import Menu, draw_tutorial
 from .timer import Timer
 from .data_logger import DataLogger
 
@@ -27,13 +27,11 @@ class Game:
         cpe_head = pygame.image.load("assets/cpe_head.png")
         cpe_leg = pygame.image.load("assets/cpe_leg.png").convert_alpha()
 
-        head_h = ske_head.get_height()
-        
         ske_head = pygame.transform.scale(ske_head, (70, 70))
         cpe_head = pygame.transform.scale(cpe_head, (70, 70))
-        
-        leg_width = int(head_h * 0.8)
-        leg_height = int(head_h * 0.6)
+
+        leg_width = int(ske_head.get_height() * 0.8)
+        leg_height = int(ske_head.get_height() * 0.6)
 
         ske_leg = pygame.transform.scale(ske_leg, (leg_width, leg_height))
         cpe_leg = pygame.transform.scale(cpe_leg, (leg_width, leg_height))
@@ -55,11 +53,12 @@ class Game:
         self.ball = Ball()
 
         self.state = "menu"
+
         self.logger = DataLogger()
 
-        self.font_big = pygame.font.SysFont("Arial", 80, bold=True)
-        self.font_mid = pygame.font.SysFont("Arial", 40)
-        self.font_score = pygame.font.SysFont("Arial", 64, bold=True)
+        self.font_big = pygame.font.SysFont("Avenir Next Condensed", 80, bold=True)
+        self.font_mid = pygame.font.SysFont("Avenir Next Condensed", 40)
+        self.font_score = pygame.font.SysFont("Avenir Next Condensed", 64, bold=True)
 
         self.menu = Menu(self.screen, self.font_big, self.font_mid)
 
@@ -76,7 +75,6 @@ class Game:
 
         self.timer = Timer(60, self.font_mid)
 
-        self.gameover_options = ["Restart", "Main Menu"]
         self.gameover_selected = 0
 
         self.last_logged_time = -1
@@ -94,7 +92,7 @@ class Game:
         self.player2.y = 300
 
         self.ball.reset_position()
-        
+
         self.timer = Timer(60, self.font_mid)
         self.timer.start_timer()
 
@@ -117,6 +115,10 @@ class Game:
                 if self.state == "menu":
                     self.menu.handle_input(event)
 
+                    if event.type == pygame.KEYDOWN:
+                        if event.key == pygame.K_h:
+                            self.state = "tutorial"
+
                     if self.menu.start_game:
                         self.state = "gameplay"
                         self.reset_game()
@@ -126,9 +128,14 @@ class Game:
                         self.state = "stats"
                         self.menu.show_stats = False
 
+                elif self.state == "tutorial":
+                    if event.type == pygame.KEYDOWN:
+                        if event.key == pygame.K_ESCAPE:
+                            self.state = "menu"
+
                 elif self.state == "stats":
                     if event.type == pygame.KEYDOWN:
-                        if event.key == pygame.K_b:
+                        if event.key == pygame.K_ESCAPE:
                             self.state = "menu"
 
                 elif self.state == "gameplay":
@@ -159,8 +166,41 @@ class Game:
             if self.state == "menu":
                 self.menu.draw()
 
+            elif self.state == "tutorial":
+                draw_tutorial(self.screen)
+
             elif self.state == "stats":
-                self.screen.fill((0,0,0))
+                W, H = self.screen.get_size()
+
+                stripe_w = 80
+                for i in range(W // stripe_w + 1):
+                    c = (34, 110, 34) if i % 2 == 0 else (28, 95, 28)
+                    pygame.draw.rect(self.screen, c, (i * stripe_w, 0, stripe_w, H))
+
+                line_color = (210, 230, 210)
+                pygame.draw.line(self.screen, line_color, (W // 2, 0), (W // 2, H), 2)
+                pygame.draw.circle(self.screen, line_color, (W // 2, H // 2), 110, 2)
+
+                overlay = pygame.Surface((W, H), pygame.SRCALPHA)
+                overlay.fill((0, 0, 0, 130))
+                self.screen.blit(overlay, (0, 0))
+
+                title_font = pygame.font.SysFont("Avenir Next Condensed", 56, bold=True)
+                stat_font = pygame.font.SysFont("Avenir Next Condensed", 26, bold=True)
+                value_font = pygame.font.SysFont("Avenir Next Condensed", 38, bold=True)
+                hint_font = pygame.font.SysFont("Avenir Next Condensed", 22, bold=True)
+
+                title = title_font.render("MATCH STATS", True, (255, 255, 255))
+                title_rect = title.get_rect(center=(W // 2, 95))
+                self.screen.blit(title, title_rect)
+
+                pygame.draw.rect(
+                    self.screen,
+                    (255, 210, 0),
+                    (W // 2 - 190, 132, 380, 6),
+                    border_radius=3
+                )
+
                 try:
                     df = pd.read_csv("game_data.csv")
 
@@ -169,25 +209,55 @@ class Game:
                     total_kicks = int(df["kicks"].sum())
                     total_jumps = int(df["jumps"].sum())
 
-                    title = self.font_big.render("GAME STATS", True, (255,255,255))
-
-                    t1 = self.font_mid.render(f"Avg Ball Speed: {avg_speed}", True, (255,255,255))
-                    t2 = self.font_mid.render(f"Max Ball Speed: {max_speed}", True, (255,255,255))
-                    t3 = self.font_mid.render(f"Total Kicks: {total_kicks}", True, (255,255,255))
-                    t4 = self.font_mid.render(f"Total Jumps: {total_jumps}", True, (255,255,255))
+                    stats = [
+                        ("AVG BALL SPEED", avg_speed, (170, 255, 170)),
+                        ("MAX BALL SPEED", max_speed, (255, 210, 0)),
+                        ("TOTAL KICKS", total_kicks, (85, 170, 255)),
+                        ("TOTAL JUMPS", total_jumps, (255, 255, 255)),
+                    ]
 
                 except:
-                    title = self.font_big.render("NO DATA YET", True, (255,255,255))
-                    t1 = self.font_mid.render("Play a game first!", True, (200,200,200))
-                    t2 = self.font_mid.render("", True, (200,200,200))
-                    t3 = self.font_mid.render("", True, (200,200,200))
-                    t4 = self.font_mid.render("", True, (200,200,200))
+                    stats = [
+                        ("NO DATA YET", "PLAY FIRST", (255, 210, 0)),
+                        ("AVG BALL SPEED", "-", (170, 255, 170)),
+                        ("TOTAL KICKS", "-", (85, 170, 255)),
+                        ("TOTAL JUMPS", "-", (255, 255, 255)),
+                    ]
 
-                self.screen.blit(title, (400,150))
-                self.screen.blit(t1, (400,280))
-                self.screen.blit(t2, (400,340))
-                self.screen.blit(t3, (400,400))
-                self.screen.blit(t4, (400,460))
+                card_w = 390
+                card_h = 105
+                gap_x = 28
+                gap_y = 26
+
+                grid_w = card_w * 2 + gap_x
+                start_x = W // 2 - grid_w // 2
+                start_y = 185
+
+                for i, (label, value, color) in enumerate(stats):
+                    col = i % 2
+                    row = i // 2
+
+                    x = start_x + col * (card_w + gap_x)
+                    y = start_y + row * (card_h + gap_y)
+
+                    card = pygame.Surface((card_w, card_h), pygame.SRCALPHA)
+                    card.fill((5, 35, 10, 220))
+                    self.screen.blit(card, (x, y))
+
+                    pygame.draw.rect(self.screen, (80, 160, 80), (x, y, card_w, card_h), 2, border_radius=8)
+                    pygame.draw.rect(self.screen, color, (x, y, 7, card_h), border_radius=4)
+
+                    label_text = stat_font.render(label, True, (210, 230, 210))
+                    value_text = value_font.render(str(value), True, color)
+
+                    self.screen.blit(label_text, (x + 28, y + 20))
+                    self.screen.blit(value_text, (x + 28, y + 58))
+
+                hint = hint_font.render("Press ESC to return to menu", True, (180, 180, 180))
+                hint_rect = hint.get_rect(center=(W // 2, 595))
+                self.screen.blit(hint, hint_rect)
+
+
 
             elif self.state == "gameplay":
                 self.screen.blit(self.field, (0, 0))
@@ -209,10 +279,9 @@ class Game:
                 self.ball.update()
 
                 self.player1.collide_with_player(self.player2)
-
                 self.player1.collide_with_ball(self.ball)
                 self.player2.collide_with_ball(self.ball)
-                
+
                 if self.left_goal.check_goal(self.ball):
                     self.score_p2 += 1
                     self.ball.reset_position()
@@ -228,40 +297,101 @@ class Game:
                 left_score = self.font_score.render(str(self.score_p1), True, (255,255,255))
                 right_score = self.font_score.render(str(self.score_p2), True, (255,255,255))
 
-                self.screen.blit(left_score, (400, 50))
-                self.screen.blit(right_score, (800, 50))
-
-                current_time = self.timer.time_left
-
-                if current_time != self.last_logged_time:
-                    self.last_logged_time = current_time
-
-                    total_kicks = self.kicks_p1 + self.kicks_p2
-                    total_jumps = self.jumps_p1 + self.jumps_p2
-
-                    kicks_this_sec = total_kicks - self.prev_kicks
-                    jumps_this_sec = total_jumps - self.prev_jumps
-
-                    self.prev_kicks = total_kicks
-                    self.prev_jumps = total_jumps
-
-                    self.logger.log(
-                        current_time,
-                        abs(self.ball.vx),
-                        self.score_p1 - self.score_p2,
-                        kicks_this_sec,
-                        jumps_this_sec
-                    )
+                self.screen.blit(left_score, (490, 75))
+                self.screen.blit(right_score, (750, 75))
 
             elif self.state == "game_over":
-                text = "Draw!"
-                if self.score_p1 > self.score_p2:
-                    text = "SKE Wins!"
-                elif self.score_p2 > self.score_p1:
-                    text = "CPE Wins!"
+                W, H = self.screen.get_size()
 
-                title = self.font_big.render(text, True, (255,255,255))
-                self.screen.blit(title, (400,200))
+                stripe_w = 80
+                for i in range(W // stripe_w + 1):
+                    c = (34, 110, 34) if i % 2 == 0 else (28, 95, 28)
+                    pygame.draw.rect(self.screen, c, (i * stripe_w, 0, stripe_w, H))
+
+                line_color = (210, 230, 210)
+                pygame.draw.line(self.screen, line_color, (W // 2, 0), (W // 2, H), 2)
+                pygame.draw.circle(self.screen, line_color, (W // 2, H // 2), 110, 2)
+
+                overlay = pygame.Surface((W, H), pygame.SRCALPHA)
+                overlay.fill((0, 0, 0, 130))
+                self.screen.blit(overlay, (0, 0))
+
+                title_font = pygame.font.SysFont("Arial Black", 62, bold=True)
+                winner_font = pygame.font.SysFont("Arial Black", 76, bold=True)
+                score_font = pygame.font.SysFont("Arial Black", 56, bold=True)
+                option_font = pygame.font.SysFont("Arial", 34, bold=True)
+                hint_font = pygame.font.SysFont("Arial", 20, bold=True)
+
+                if self.score_p1 > self.score_p2:
+                    result_text = "SKE WINS"
+                    result_color = (255, 210, 0)
+                elif self.score_p2 > self.score_p1:
+                    result_text = "CPE WINS"
+                    result_color = (85, 170, 255)
+                else:
+                    result_text = "DRAW"
+                    result_color = (255, 255, 255)
+
+                title = title_font.render("FULL TIME", True, (255, 255, 255))
+                title_rect = title.get_rect(center=(W // 2, 95))
+                self.screen.blit(title, title_rect)
+
+                pygame.draw.rect(
+                    self.screen,
+                    (255, 210, 0),
+                    (W // 2 - 170, 132, 340, 6),
+                    border_radius=3
+                )
+
+                result = winner_font.render(result_text, True, result_color)
+                result_rect = result.get_rect(center=(W // 2, 220))
+                self.screen.blit(result, result_rect)
+
+                score_text = score_font.render(
+                    f"{self.score_p1}  -  {self.score_p2}",
+                    True,
+                    (255, 255, 255)
+                )
+                score_rect = score_text.get_rect(center=(W // 2, 305))
+                self.screen.blit(score_text, score_rect)
+
+                labels = ["PLAY AGAIN", "MAIN MENU"]
+                btn_w = 360
+                btn_h = 56
+                start_y = 390
+                gap = 18
+
+                for i, label in enumerate(labels):
+                    x = W // 2 - btn_w // 2
+                    y = start_y + i * (btn_h + gap)
+                    rect = pygame.Rect(x, y, btn_w, btn_h)
+
+                    if i == self.gameover_selected:
+                        pygame.draw.rect(self.screen, (255, 210, 0), rect, border_radius=8)
+                        text_color = (15, 15, 15)
+
+                        arrow_x = x - 34
+                        arrow_y = y + btn_h // 2
+                        pygame.draw.polygon(
+                            self.screen,
+                            (255, 210, 0),
+                            [(arrow_x, arrow_y - 10), (arrow_x + 18, arrow_y), (arrow_x, arrow_y + 10)]
+                        )
+                    else:
+                        card = pygame.Surface((btn_w, btn_h), pygame.SRCALPHA)
+                        card.fill((0, 0, 0, 135))
+                        self.screen.blit(card, rect.topleft)
+                        pygame.draw.rect(self.screen, (160, 160, 160), rect, 2, border_radius=8)
+                        text_color = (220, 220, 220)
+
+                    option_text = option_font.render(label, True, text_color)
+                    option_rect = option_text.get_rect(center=rect.center)
+                    self.screen.blit(option_text, option_rect)
+
+                hint = hint_font.render("UP / DOWN to select    ENTER to confirm", True, (170, 190, 170))
+                hint_rect = hint.get_rect(center=(W // 2, 610))
+                self.screen.blit(hint, hint_rect)
+
 
             pygame.display.update()
             self.clock.tick(60)
