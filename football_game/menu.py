@@ -33,8 +33,19 @@ class Menu:
         self.screen.blit(title, (450, 150))
 
         for i, option in enumerate(self.options):
-            color = (255,255,0) if i == self.selected else (200,200,200)
-            text = self.font_mid.render(option, True, color)
+            x = 440
+            y = 300 + i*100
+            width = 400
+            height = 60
 
-            rect = text.get_rect(center=(640, 350 + i*80))
+            # highlight
+            if i == self.selected:
+                pygame.draw.rect(self.screen, (255,255,0), (x, y, width, height))
+                color = (0,0,0)
+            else:
+                pygame.draw.rect(self.screen, (0,0,0), (x, y, width, height), 3)
+                color = (255,255,255)
+
+            text = self.font_mid.render(option, True, color)
+            rect = text.get_rect(center=(x + width//2, y + height//2))
             self.screen.blit(text, rect)

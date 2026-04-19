@@ -21,33 +21,40 @@ class Game:
         self.field = pygame.image.load("assets/field.png")
         self.field = pygame.transform.scale(self.field, (WIDTH, HEIGHT))
 
-        ske_img = pygame.image.load("assets/ske_player.png")
-        cpe_img = pygame.image.load("assets/cpe_player.png")
+        ske_head = pygame.image.load("assets/ske_head.png")
+        ske_leg = pygame.image.load("assets/ske_leg.png").convert_alpha()
 
-        ske_img = pygame.transform.scale(ske_img, (120, 100))
-        cpe_img = pygame.transform.scale(cpe_img, (120, 100))
+        cpe_head = pygame.image.load("assets/cpe_head.png")
+        cpe_leg = pygame.image.load("assets/cpe_leg.png").convert_alpha()
 
-        self.player1 = Player(200, ske_img, {
+        head_h = ske_head.get_height()
+        
+        ske_head = pygame.transform.scale(ske_head, (70, 70))
+        cpe_head = pygame.transform.scale(cpe_head, (70, 70))
+        
+        leg_width = int(head_h * 0.8)
+        leg_height = int(head_h * 0.6)
+
+        ske_leg = pygame.transform.scale(ske_leg, (leg_width, leg_height))
+        cpe_leg = pygame.transform.scale(cpe_leg, (leg_width, leg_height))
+
+        self.player1 = Player(200, ske_head, ske_leg, {
             "left": pygame.K_a,
             "right": pygame.K_d,
             "jump": pygame.K_w,
             "kick": pygame.K_e
         })
 
-        self.player2 = Player(1000, cpe_img, {
+        self.player2 = Player(1000, cpe_head, cpe_leg, {
             "left": pygame.K_LEFT,
             "right": pygame.K_RIGHT,
             "jump": pygame.K_UP,
             "kick": pygame.K_SPACE
         })
-        self.kicks_p1 = 0
-        self.kicks_p2 = 0
-        self.jumps_p1 = 0
-        self.jumps_p2 = 0
+
         self.ball = Ball()
 
         self.state = "menu"
-        
         self.logger = DataLogger()
 
         self.font_big = pygame.font.SysFont("Arial", 80, bold=True)
@@ -59,27 +66,47 @@ class Game:
         self.score_p1 = 0
         self.score_p2 = 0
 
-        self.left_goal = Goal(0, 420, 40, 120, "left")
-        self.right_goal = Goal(WIDTH - 40, 420, 40, 120, "right")
+        self.kicks_p1 = 0
+        self.kicks_p2 = 0
+        self.jumps_p1 = 0
+        self.jumps_p2 = 0
+
+        self.left_goal = Goal(0, 300, 40, 120, "left")
+        self.right_goal = Goal(WIDTH - 40, 300, 40, 120, "right")
 
         self.timer = Timer(60, self.font_mid)
 
         self.gameover_options = ["Restart", "Main Menu"]
         self.gameover_selected = 0
 
+        self.last_logged_time = -1
+        self.prev_kicks = 0
+        self.prev_jumps = 0
+
     def reset_game(self):
         self.score_p1 = 0
         self.score_p2 = 0
+
+        self.player1.x = 200
+        self.player1.y = 300
+
+        self.player2.x = 1000
+        self.player2.y = 300
+
         self.ball.reset_position()
+        
         self.timer = Timer(60, self.font_mid)
         self.timer.start_timer()
-        self.gameover_selected = 0
-        
+
         self.kicks_p1 = 0
         self.kicks_p2 = 0
         self.jumps_p1 = 0
         self.jumps_p2 = 0
-        
+
+        self.last_logged_time = -1
+        self.prev_kicks = 0
+        self.prev_jumps = 0
+
     def run(self):
         while True:
             for event in pygame.event.get():
@@ -99,31 +126,27 @@ class Game:
                         self.state = "stats"
                         self.menu.show_stats = False
 
-                # stats
                 elif self.state == "stats":
                     if event.type == pygame.KEYDOWN:
                         if event.key == pygame.K_b:
                             self.state = "menu"
 
-                # gameplay
                 elif self.state == "gameplay":
                     if event.type == pygame.KEYDOWN:
                         if event.key == pygame.K_e:
                             self.player1.kick(self.ball)
                             self.kicks_p1 += 1
+
                         if event.key == pygame.K_SPACE:
                             self.player2.kick(self.ball)
                             self.kicks_p2 += 1
 
-                # gameover
                 elif self.state == "game_over":
                     if event.type == pygame.KEYDOWN:
                         if event.key == pygame.K_UP:
                             self.gameover_selected = (self.gameover_selected - 1) % 2
-
                         elif event.key == pygame.K_DOWN:
                             self.gameover_selected = (self.gameover_selected + 1) % 2
-
                         elif event.key == pygame.K_RETURN:
                             if self.gameover_selected == 0:
                                 self.state = "gameplay"
@@ -133,14 +156,11 @@ class Game:
 
             self.screen.fill((0, 0, 0))
 
-            # menu
             if self.state == "menu":
                 self.menu.draw()
 
-            # stats
             elif self.state == "stats":
                 self.screen.fill((0,0,0))
-
                 try:
                     df = pd.read_csv("game_data.csv")
 
@@ -158,26 +178,20 @@ class Game:
 
                 except:
                     title = self.font_big.render("NO DATA YET", True, (255,255,255))
-
                     t1 = self.font_mid.render("Play a game first!", True, (200,200,200))
                     t2 = self.font_mid.render("", True, (200,200,200))
                     t3 = self.font_mid.render("", True, (200,200,200))
                     t4 = self.font_mid.render("", True, (200,200,200))
-
-                back = self.font_mid.render("Press B to go back", True, (200,200,200))
 
                 self.screen.blit(title, (400,150))
                 self.screen.blit(t1, (400,280))
                 self.screen.blit(t2, (400,340))
                 self.screen.blit(t3, (400,400))
                 self.screen.blit(t4, (400,460))
-                self.screen.blit(back, (400,550))
 
-            # gameplay
             elif self.state == "gameplay":
                 self.screen.blit(self.field, (0, 0))
 
-                # timer
                 self.timer.update_timer()
                 self.timer.draw_timer(self.screen)
 
@@ -192,22 +206,13 @@ class Game:
                 self.player1.update()
                 self.player2.update()
 
-                self.player1.x = max(0, min(self.player1.x, WIDTH - 120))
-                self.player2.x = max(0, min(self.player2.x, WIDTH - 120))
-
-                self.player1.rect.x = self.player1.x
-                self.player2.rect.x = self.player2.x
-
-                if self.player1.rect.colliderect(self.player2.rect):
-                    if self.player1.x < self.player2.x:
-                        self.player1.x -= 5
-                        self.player2.x += 5
-                    else:
-                        self.player1.x += 5
-                        self.player2.x -= 5
-
                 self.ball.update()
 
+                self.player1.collide_with_player(self.player2)
+
+                self.player1.collide_with_ball(self.ball)
+                self.player2.collide_with_ball(self.ball)
+                
                 if self.left_goal.check_goal(self.ball):
                     self.score_p2 += 1
                     self.ball.reset_position()
@@ -216,11 +221,9 @@ class Game:
                     self.score_p1 += 1
                     self.ball.reset_position()
 
-                if self.ball.rect.colliderect(self.player1.rect):
-                    self.ball.vx = abs(self.ball.vx) + 2
-
-                if self.ball.rect.colliderect(self.player2.rect):
-                    self.ball.vx = -abs(self.ball.vx) - 2
+                self.player1.draw(self.screen)
+                self.player2.draw(self.screen)
+                self.ball.draw(self.screen)
 
                 left_score = self.font_score.render(str(self.score_p1), True, (255,255,255))
                 right_score = self.font_score.render(str(self.score_p2), True, (255,255,255))
@@ -228,39 +231,37 @@ class Game:
                 self.screen.blit(left_score, (400, 50))
                 self.screen.blit(right_score, (800, 50))
 
-                self.player1.draw(self.screen)
-                self.player2.draw(self.screen)
-                self.ball.draw(self.screen)
-                
-                ball_speed = abs(self.ball.vx)
-                score_diff = self.score_p1 - self.score_p2
+                current_time = self.timer.time_left
 
-                self.logger.log(
-                    self.timer.time_left,
-                    ball_speed,
-                    score_diff,
-                    self.kicks_p1 + self.kicks_p2,
-                    self.jumps_p1 + self.jumps_p2
-)
+                if current_time != self.last_logged_time:
+                    self.last_logged_time = current_time
 
-            # gameover
+                    total_kicks = self.kicks_p1 + self.kicks_p2
+                    total_jumps = self.jumps_p1 + self.jumps_p2
+
+                    kicks_this_sec = total_kicks - self.prev_kicks
+                    jumps_this_sec = total_jumps - self.prev_jumps
+
+                    self.prev_kicks = total_kicks
+                    self.prev_jumps = total_jumps
+
+                    self.logger.log(
+                        current_time,
+                        abs(self.ball.vx),
+                        self.score_p1 - self.score_p2,
+                        kicks_this_sec,
+                        jumps_this_sec
+                    )
+
             elif self.state == "game_over":
+                text = "Draw!"
                 if self.score_p1 > self.score_p2:
                     text = "SKE Wins!"
                 elif self.score_p2 > self.score_p1:
                     text = "CPE Wins!"
-                else:
-                    text = "Draw!"
 
                 title = self.font_big.render(text, True, (255,255,255))
                 self.screen.blit(title, (400,200))
 
-                for i, option in enumerate(self.gameover_options):
-                    color = (255,255,0) if i == self.gameover_selected else (200,200,200)
-                    text = self.font_mid.render(option, True, color)
-
-                    rect = text.get_rect(center=(640, 350 + i*60))
-                    self.screen.blit(text, rect)
-                    
             pygame.display.update()
             self.clock.tick(60)
