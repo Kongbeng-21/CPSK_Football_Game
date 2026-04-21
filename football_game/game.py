@@ -314,101 +314,117 @@ class Game:
             elif self.state == "stats":
                 W, H = self.screen.get_size()
 
-                stripe_w = 80
-                for i in range(W // stripe_w + 1):
-                    c = (34, 110, 34) if i % 2 == 0 else (28, 95, 28)
+                stripe_w = 70
+                for i in range(W // stripe_w + 2):
+                    c = (32, 108, 32) if i % 2 == 0 else (26, 90, 26)
                     pygame.draw.rect(self.screen, c, (i * stripe_w, 0, stripe_w, H))
 
-                line_color = (210, 230, 210)
-                pygame.draw.line(self.screen, line_color, (W // 2, 0), (W // 2, H), 2)
-                pygame.draw.circle(self.screen, line_color, (W // 2, H // 2), 110, 2)
+                lc = (255, 255, 255, 55)
+                lw = 2
+                m = 60
+                fw = W - m * 2
+                fh = H - m * 2
+                fx = m
+                fy = m
+                s_lc = (255, 255, 255, 55)
+
+                field_surf = pygame.Surface((W, H), pygame.SRCALPHA)
+                pygame.draw.rect(field_surf, s_lc, (fx, fy, fw, fh), lw)
+                pygame.draw.line(field_surf, s_lc, (W // 2, fy), (W // 2, fy + fh), lw)
+                pygame.draw.circle(field_surf, s_lc, (W // 2, H // 2), 90, lw)
+                self.screen.blit(field_surf, (0, 0))
 
                 overlay = pygame.Surface((W, H), pygame.SRCALPHA)
-                overlay.fill((0, 0, 0, 130))
+                overlay.fill((0, 0, 0, 120))
                 self.screen.blit(overlay, (0, 0))
 
                 title_font = pygame.font.SysFont("Avenir Next Condensed", 56, bold=True)
-                stat_font = pygame.font.SysFont("Avenir Next Condensed", 26, bold=True)
-                value_font = pygame.font.SysFont("Avenir Next Condensed", 38, bold=True)
+                stat_font = pygame.font.SysFont("Avenir Next Condensed", 22, bold=True)
+                value_font = pygame.font.SysFont("Avenir Next Condensed", 34, bold=True)
                 hint_font = pygame.font.SysFont("Avenir Next Condensed", 22, bold=True)
 
                 title = title_font.render("MATCH STATS", True, (255, 255, 255))
-                title_rect = title.get_rect(center=(W // 2, 95))
-                self.screen.blit(title, title_rect)
-
-                pygame.draw.rect(
-                    self.screen,
-                    (255, 210, 0),
-                    (W // 2 - 190, 132, 380, 6),
-                    border_radius=3
-                )
+                self.screen.blit(title, title.get_rect(center=(W // 2, 72)))
+                pygame.draw.rect(self.screen, (255, 210, 0), (W // 2 - 180, 106, 360, 5), border_radius=3)
 
                 try:
                     df = pd.read_csv("game_data.csv")
+                    last = df.groupby("match_id").last().reset_index()
 
-                    avg_speed = round(df["ball_speed"].mean(), 2)
-                    max_speed = round(df["ball_speed"].max(), 2)
-                    total_kicks = f"SKE {int(df['kicks_p1'].max())} / CPE {int(df['kicks_p2'].max())}"
-                    total_jumps = f"SKE {int(df['jumps_p1'].max())} / CPE {int(df['jumps_p2'].max())}"
+                    matches_played = len(last)
 
-                    matches_played = int(df["match_id"].nunique())
-                    latest_match = int(df["match_id"].max())
+                    last_score_p1 = int(last.iloc[-1]["score_p1"])
+                    last_score_p2 = int(last.iloc[-1]["score_p2"])
+                    last_result = f"SKE  {last_score_p1}  –  {last_score_p2}  CPE"
+
+                    ske_wins = int((last["score_p1"] > last["score_p2"]).sum())
+                    draws = int((last["score_p1"] == last["score_p2"]).sum())
+                    cpe_wins = int((last["score_p1"] < last["score_p2"]).sum())
+                    win_record = f"SKE {ske_wins}W  {draws}D  CPE {cpe_wins}W"
+
+                    total_goals_p1 = int(last["score_p1"].sum())
+                    total_goals_p2 = int(last["score_p2"].sum())
+                    total_goals = f"SKE {total_goals_p1}  |  CPE {total_goals_p2}"
+
+                    avg_poss_p1 = round(df["possession"].mean(), 1)
+                    avg_poss_p2 = round(100 - avg_poss_p1, 1)
+                    avg_possession = f"SKE {avg_poss_p1}%  |  CPE {avg_poss_p2}%"
+
+                    total_kicks_p1 = int(last["kicks_p1"].sum())
+                    total_kicks_p2 = int(last["kicks_p2"].sum())
+                    total_kicks = f"SKE {total_kicks_p1}  |  CPE {total_kicks_p2}"
+
+                    total_shots_p1 = int(last["shots_p1"].sum())
+                    total_shots_p2 = int(last["shots_p2"].sum())
+                    total_shots = f"SKE {total_shots_p1}  |  CPE {total_shots_p2}"
 
                     stats = [
-                        ("MATCHES PLAYED", matches_played, (255, 210, 0)),
-                        ("LATEST MATCH", latest_match, (255, 255, 255)),
-                        ("AVG BALL SPEED", avg_speed, (170, 255, 170)),
-                        ("MAX BALL SPEED", max_speed, (255, 210, 0)),
-                        ("TOTAL KICKS", total_kicks, (85, 170, 255)),
-                        ("TOTAL JUMPS", total_jumps, (255, 255, 255)),
+                        ("MATCHES PLAYED", str(matches_played), (255, 210, 0)),
+                        ("LAST RESULT", last_result, (170, 255, 170)),
+                        ("WIN RECORD", win_record, (255, 210, 0)),
+                        ("TOTAL GOALS", total_goals, (85, 220, 255)),
+                        ("AVG POSSESSION", avg_possession, (200, 160, 255)),
+                        ("TOTAL KICKS", total_kicks, (255, 180, 80)),
                     ]
 
-
-                except:
+                except Exception:
                     stats = [
-                        ("NO DATA YET", "PLAY FIRST", (255, 210, 0)),
-                        ("MATCHES PLAYED", "-", (255, 255, 255)),
-                        ("AVG BALL SPEED", "-", (170, 255, 170)),
-                        ("MAX BALL SPEED", "-", (255, 210, 0)),
-                        ("TOTAL KICKS", "-", (85, 170, 255)),
-                        ("TOTAL JUMPS", "-", (255, 255, 255)),
+                        ("MATCHES PLAYED", "–", (255, 210, 0)),
+                        ("LAST RESULT", "PLAY FIRST", (170, 255, 170)),
+                        ("WIN RECORD", "–", (255, 210, 0)),
+                        ("TOTAL GOALS", "–", (85, 220, 255)),
+                        ("AVG POSSESSION", "–", (200, 160, 255)),
+                        ("TOTAL KICKS", "–", (255, 180, 80)),
                     ]
 
-
-                card_w = 340
-                card_h = 92
-                gap_x = 24
-                gap_y = 22
+                card_w = 330
+                card_h = 88
+                gap_x = 28
+                gap_y = 20
 
                 grid_w = card_w * 2 + gap_x
                 start_x = W // 2 - grid_w // 2
-                start_y = 170
-
+                start_y = 132
 
                 for i, (label, value, color) in enumerate(stats):
                     col = i % 2
                     row = i // 2
-
                     x = start_x + col * (card_w + gap_x)
                     y = start_y + row * (card_h + gap_y)
 
                     card = pygame.Surface((card_w, card_h), pygame.SRCALPHA)
-                    card.fill((5, 35, 10, 220))
+                    card.fill((5, 35, 10, 215))
                     self.screen.blit(card, (x, y))
-
                     pygame.draw.rect(self.screen, (80, 160, 80), (x, y, card_w, card_h), 2, border_radius=8)
-                    pygame.draw.rect(self.screen, color, (x, y, 7, card_h), border_radius=4)
+                    pygame.draw.rect(self.screen, color, (x, y, 6, card_h), border_radius=4)
 
-                    label_text = stat_font.render(label, True, (210, 230, 210))
-                    value_text = value_font.render(str(value), True, color)
-
-                    self.screen.blit(label_text, (x + 24, y + 16))
-                    self.screen.blit(value_text, (x + 24, y + 50))
-
+                    label_text = stat_font.render(label, True, (200, 225, 200))
+                    value_text = value_font.render(value, True, color)
+                    self.screen.blit(label_text, (x + 20, y + 12))
+                    self.screen.blit(value_text, (x + 20, y + 48))
 
                 hint = hint_font.render("Press ESC to return to menu", True, (180, 180, 180))
-                hint_rect = hint.get_rect(center=(W // 2, 595))
-                self.screen.blit(hint, hint_rect)
+                self.screen.blit(hint, hint.get_rect(center=(W // 2, H - 32)))
 
 
 
