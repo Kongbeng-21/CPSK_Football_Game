@@ -30,6 +30,23 @@ class DataLogger:
             with open(self.filename, "w", newline="") as f:
                 writer = csv.writer(f)
                 writer.writerow(self.headers)
+                
+    def get_next_match_id(self):
+        max_match_id = 0
+
+        if not os.path.exists(self.filename):
+            return 1
+
+        with open(self.filename, "r", newline="") as f:
+            reader = csv.DictReader(f)
+
+            for row in reader:
+                try:
+                    max_match_id = max(max_match_id, int(row["match_id"]))
+                except (KeyError, TypeError, ValueError):
+                    pass
+
+        return max_match_id + 1
 
     def log(self, row):
         with open(self.filename, "a", newline="") as f:

@@ -8,6 +8,8 @@ from .goal import Goal
 from .menu import Menu, draw_tutorial
 from .timer import Timer
 from .data_logger import DataLogger
+from .sound_manager import SoundManager
+from .skin_manager import SkinManager
 
 WIDTH = 1280
 HEIGHT = 720
@@ -55,8 +57,13 @@ class Game:
 
         self.state = "menu"
 
+        self.sound_manager = SoundManager()
+        self.skin_manager = SkinManager(ske_head, ske_leg, cpe_head, cpe_leg)
+
         self.logger = DataLogger()
-        self.match_id = 0
+        self.match_id = self.logger.get_next_match_id() - 1
+
+        self.countdown_start_ticks = 0
 
 
         self.font_big = pygame.font.SysFont("Avenir Next Condensed", 80, bold=True)
@@ -107,7 +114,6 @@ class Game:
         self.ball.reset_position()
 
         self.timer = Timer(60, self.font_mid)
-        self.timer.start_timer()
 
         self.kicks_p1 = 0
         self.kicks_p2 = 0
@@ -231,8 +237,9 @@ class Game:
                             self.state = "tutorial"
 
                     if self.menu.start_game:
-                        self.state = "gameplay"
                         self.reset_game()
+                        self.state = "countdown"
+                        self.countdown_start_ticks = pygame.time.get_ticks()
                         self.menu.start_game = False
 
                     elif self.menu.show_stats:
@@ -263,6 +270,7 @@ class Game:
                             if self.is_kick_in_range(self.player1):
                                 if self.player1.facing_right:
                                     self.shots_p1 += 1
+                                self.sound_manager.play_kick()
 
                             self.player1.kick(self.ball)
                             self.kicks_p1 += 1
@@ -271,6 +279,7 @@ class Game:
                             if self.is_kick_in_range(self.player2):
                                 if not self.player2.facing_right:
                                     self.shots_p2 += 1
+                                self.sound_manager.play_kick()
 
                             self.player2.kick(self.ball)
                             self.kicks_p2 += 1
@@ -284,8 +293,9 @@ class Game:
                             self.gameover_selected = (self.gameover_selected + 1) % 2
                         elif event.key == pygame.K_RETURN:
                             if self.gameover_selected == 0:
-                                self.state = "gameplay"
                                 self.reset_game()
+                                self.state = "countdown"
+                                self.countdown_start_ticks = pygame.time.get_ticks()
                             else:
                                 self.state = "menu"
 
@@ -337,29 +347,39 @@ class Game:
                     total_kicks = f"SKE {int(df['kicks_p1'].max())} / CPE {int(df['kicks_p2'].max())}"
                     total_jumps = f"SKE {int(df['jumps_p1'].max())} / CPE {int(df['jumps_p2'].max())}"
 
+                    matches_played = int(df["match_id"].nunique())
+                    latest_match = int(df["match_id"].max())
+
                     stats = [
+                        ("MATCHES PLAYED", matches_played, (255, 210, 0)),
+                        ("LATEST MATCH", latest_match, (255, 255, 255)),
                         ("AVG BALL SPEED", avg_speed, (170, 255, 170)),
                         ("MAX BALL SPEED", max_speed, (255, 210, 0)),
                         ("TOTAL KICKS", total_kicks, (85, 170, 255)),
                         ("TOTAL JUMPS", total_jumps, (255, 255, 255)),
                     ]
 
+
                 except:
                     stats = [
                         ("NO DATA YET", "PLAY FIRST", (255, 210, 0)),
+                        ("MATCHES PLAYED", "-", (255, 255, 255)),
                         ("AVG BALL SPEED", "-", (170, 255, 170)),
+                        ("MAX BALL SPEED", "-", (255, 210, 0)),
                         ("TOTAL KICKS", "-", (85, 170, 255)),
                         ("TOTAL JUMPS", "-", (255, 255, 255)),
                     ]
 
-                card_w = 390
-                card_h = 105
-                gap_x = 28
-                gap_y = 26
+
+                card_w = 340
+                card_h = 92
+                gap_x = 24
+                gap_y = 22
 
                 grid_w = card_w * 2 + gap_x
                 start_x = W // 2 - grid_w // 2
-                start_y = 185
+                start_y = 170
+
 
                 for i, (label, value, color) in enumerate(stats):
                     col = i % 2
@@ -378,14 +398,45 @@ class Game:
                     label_text = stat_font.render(label, True, (210, 230, 210))
                     value_text = value_font.render(str(value), True, color)
 
-                    self.screen.blit(label_text, (x + 28, y + 20))
-                    self.screen.blit(value_text, (x + 28, y + 58))
+                    self.screen.blit(label_text, (x + 24, y + 16))
+                    self.screen.blit(value_text, (x + 24, y + 50))
+
 
                 hint = hint_font.render("Press ESC to return to menu", True, (180, 180, 180))
                 hint_rect = hint.get_rect(center=(W // 2, 595))
                 self.screen.blit(hint, hint_rect)
 
 
+
+            elif self.state == "countdown":
+                self.screen.blit(self.field, (0, 0))
+
+                self.player1.draw(self.screen)
+                self.player2.draw(self.screen)
+                self.ball.draw(self.screen)
+
+                elapsed = (pygame.time.get_ticks() - self.countdown_start_ticks) // 1000
+
+                if elapsed >= 4:
+                    self.state = "gameplay"
+                    self.timer.start_timer()
+                else:
+                    if elapsed == 3:
+                        cd_text = "GO!"
+                        cd_color = (80, 255, 80)
+                    else:
+                        cd_text = str(3 - elapsed)
+                        cd_color = (255, 255, 255)
+
+                    font_cd = pygame.font.SysFont("Avenir Next Condensed", 180, bold=True)
+
+                    shadow = font_cd.render(cd_text, True, (0, 0, 0))
+                    shadow_rect = shadow.get_rect(center=(WIDTH // 2 + 4, HEIGHT // 2 + 4))
+                    self.screen.blit(shadow, shadow_rect)
+
+                    text = font_cd.render(cd_text, True, cd_color)
+                    text_rect = text.get_rect(center=(WIDTH // 2, HEIGHT // 2))
+                    self.screen.blit(text, text_rect)
 
             elif self.state == "gameplay":
                 self.screen.blit(self.field, (0, 0))
@@ -394,6 +445,7 @@ class Game:
                 self.timer.draw_timer(self.screen)
 
                 if self.timer.is_time_up():
+                    self.sound_manager.play_timeout()
                     self.state = "game_over"
 
                 keys = pygame.key.get_pressed()
@@ -416,10 +468,12 @@ class Game:
                 if self.left_goal.check_goal(self.ball):
                     self.score_p2 += 1
                     self.ball.reset_position()
+                    self.sound_manager.play_goal()
 
                 if self.right_goal.check_goal(self.ball):
                     self.score_p1 += 1
                     self.ball.reset_position()
+                    self.sound_manager.play_goal()
 
                 self.player1.draw(self.screen)
                 self.player2.draw(self.screen)
