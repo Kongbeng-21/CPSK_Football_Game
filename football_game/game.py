@@ -245,6 +245,10 @@ class Game:
                     elif self.menu.show_stats:
                         self.state = "stats"
                         self.menu.show_stats = False
+                    
+                    elif self.menu.show_tutorial:       
+                        self.state = "tutorial"          
+                        self.menu.show_tutorial = False 
 
                 elif self.state == "tutorial":
                     if event.type == pygame.KEYDOWN:
