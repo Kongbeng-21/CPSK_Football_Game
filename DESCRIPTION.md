@@ -145,12 +145,24 @@ a 9-panel dashboard saved to `stats/stats_dashboard.png`.
 - **assets/ball.png** — Generated with Google Gemini  
   Prompt: "Draw a simple cartoon soccer ball for use in a Pygame game."
 
-- **Character head sprites** (halal_head.png, visus_head.png, theboy_head.png, 
-  para_head.png, beckhum_head.png) — Generated programmatically with Python/Pillow.  
-  Character designs inspired by (not copied from) real footballers:  
-  HALAL → Erling Haaland, VISUS → Vinícius Jr., THE BOY → Kevin De Bruyne,  
-  PARA → Mohamed Salah, BECKHUM → David Beckham
+- **Character head sprites** — Generated programmatically with Python/Pillow via Claude (Anthropic).  
+  Prompt: "Draw cartoon football player faces inspired by real footballers:  
+  Haaland (blonde man bun), Vinícius Jr. (curly black hair, dark skin),  
+  De Bruyne (spiky blonde), Salah (curly dark hair, beard), Beckham (spiky brown).  
+  Use PIL drawing primitives only, no external images."
 
-- **Boot sprites** (*_leg.png) — Generated programmatically with Python/Pillow
+- **Boot sprites** (halal_leg.png, visus_leg.png, theboy_leg.png, 
+  para_leg.png, beckhum_leg.png) — Generated programmatically with 
+  Python/Pillow via Claude (Anthropic).  
+  Prompt: "Redesign football boot sprites to match a reference image of 
+  a dark charcoal boot with coloured accent panel. Draw using PIL ellipse 
+  and polygon primitives only. Generate one base boot (halal_leg.png) then 
+  recolour the accent area for each skin: green (VISUS), blue (THE BOY), 
+  orange (PARA), purple (BECKHUM)."
 
-- **Sound effects** (kick.wav, goal.wav, etc.) — Synthesised programmatically with NumPy
+- **Sound effects** (kick.wav, goal.wav, start_whistle.wav, timeout.wav)  
+  — Synthesised programmatically with NumPy via Claude (Anthropic).  
+  No external audio files were used. All sounds are generated from mathematical  
+  waveforms (sine waves, noise bursts, exponential decay) at runtime.  
+  Prompt given to Claude: "Create realistic football game sound effects —  
+  kick thud, goal crowd cheer, start bell, and end gong — using NumPy synthesis"
