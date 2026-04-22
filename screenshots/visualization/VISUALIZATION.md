@@ -9,7 +9,7 @@ It reads `game_data.csv` and produces a 9-panel PNG saved to `stats/stats_dashbo
 
 ## Full Dashboard
 
-*(Add screenshot: `overall_dashboard.png`)*
+![Overall Dashboard](overall_dashboard.png)
 
 The dashboard is divided into three rows:
 - **Row 1 — Match Overview**: score history, win record, shot accuracy
@@ -21,53 +21,53 @@ The dashboard is divided into three rows:
 ## Panel Descriptions
 
 ### 1. Final Score by Match
-*(Add screenshot: `panel_score_by_match.png`)*
+![Final Score by Match](panel_score_by_match.png)
 
 Line chart showing SKE (yellow) and CPE (blue) goals in each individual match.
 Helps identify which team tends to score more and whether performance is consistent.
 
 ### 2. Win Rate & Win Record
-*(Add screenshot: `panel_win_record.png`)*
+![Win Rate & Win Record](panel_win_record.png)
 
 Bar chart with the number of wins for SKE, draws, and CPE wins.
 Win rate percentage is overlaid on each bar.
 
 ### 3. Shot Accuracy by Match
-*(Add screenshot: `panel_shot_accuracy.png`)*
+![Shot Accuracy by Match](panel_shot_accuracy.png)
 
 Line chart showing `shots ÷ kicks × 100%` for each player per match.
 Dashed horizontal lines indicate each player's overall average accuracy.
 
 ### 4. Kicks per Match
-*(Add screenshot: `panel_kicks.png`)*
+![Kicks per Match](panel_kicks.png)
 
 Grouped bar chart comparing total kicks by SKE and CPE in each match.
 One of the core proposal metrics.
 
 ### 5. Jumps per Match
-*(Add screenshot: `panel_jumps.png`)*
+![Jumps per Match](panel_jumps.png)
 
 Grouped bar chart comparing total jumps by SKE and CPE in each match.
 One of the core proposal metrics.
 
 ### 6. Total Shots & Touches
-*(Add screenshot: `panel_shots_touches.png`)*
+![Total Shots & Touches](panel_shots_touches.png)
 
 Aggregated bar chart across all matches: shots on goal and ball touches per player.
 
 ### 7. Average Score Difference Over Time
-*(Add screenshot: `panel_score_diff.png`)*
+![Average Score Difference Over Time](panel_score_diff.png)
 
 Line chart showing the average `score_p1 − score_p2` at each second across all matches.
 Yellow fill = SKE ahead on average, blue fill = CPE ahead.
 
 ### 8. Average Possession
-*(Add screenshot: `panel_possession.png`)*
+![Average Possession](panel_possession.png)
 
 Pie chart showing SKE vs. CPE average ball possession percentage across all recorded data.
 
 ### 9. Possession vs. Result
-*(Add screenshot: `panel_possession_vs_result.png`)*
+![Possession vs. Result](panel_possession_vs_result.png)
 
 Scatter plot where each point is one match: x = SKE average possession %, y = score difference.
 A trend line shows whether having more possession correlates with winning.

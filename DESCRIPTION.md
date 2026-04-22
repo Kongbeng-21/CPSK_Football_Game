@@ -130,7 +130,7 @@ a 9-panel dashboard saved to `stats/stats_dashboard.png`.
 
 ## 6. Changed Proposed Features
 
-*(Fill in if any features differ from the original proposal)*
+All features were implemented as proposed.
 
 ---
 
