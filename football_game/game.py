@@ -108,10 +108,8 @@ class Game:
     def _apply_skins(self, p1_idx, p2_idx):
         self.skin_p1 = SKINS[p1_idx]
         self.skin_p2 = SKINS[p2_idx]
-        print(f"[_apply_skins] P1={p1_idx} ({self.skin_p1['name']})  P2={p2_idx} ({self.skin_p2['name']})")
         self.player1.head_img, self.player1.leg_img = self._load_skin_imgs(self.skin_p1, flip=False)
         self.player2.head_img, self.player2.leg_img = self._load_skin_imgs(self.skin_p2, flip=True)
-        print(f"[_apply_skins] P1 head id={id(self.player1.head_img)}  P2 head id={id(self.player2.head_img)}")
     def reset_game(self):
         self.match_id += 1
         self.score_p1 = 0
@@ -145,14 +143,9 @@ class Game:
         self.prev_kicks = 0
         self.prev_jumps = 0
 
+        # Always re-apply current skins after reset so images are never stale
         self.player1.head_img, self.player1.leg_img = self._load_skin_imgs(self.skin_p1, flip=False)
         self.player2.head_img, self.player2.leg_img = self._load_skin_imgs(self.skin_p2, flip=True)
-        def _px(surf):
-            w = surf.get_width()
-            return surf.get_at((w // 2, 5))[:3]   
-        p1_px = _px(self.player1.head_img)
-        p2_px = _px(self.player2.head_img)
-        print(f"[reset_game] P1={self.skin_p1['name']} hair_rgb={p1_px}  P2={self.skin_p2['name']} hair_rgb={p2_px}")
 
     def get_distance_to_ball(self, player):
         px = player.x + player.width / 2
@@ -485,9 +478,6 @@ class Game:
                 if elapsed >= 4:
                     self.state = "gameplay"
                     self.timer.start_timer()
-                    print(f"[gameplay start] P1 head size={self.player1.head_img.get_size()}  P2 head size={self.player2.head_img.get_size()}")
-                    print(f"[gameplay start] P1 skin={self.skin_p1['name']}  P2 skin={self.skin_p2['name']}")
-                    print(f"[gameplay start] P1 head id={id(self.player1.head_img)}  P2 head id={id(self.player2.head_img)}")
                 else:
                     if elapsed == 3:
                         cd_text = "GO!"
@@ -545,14 +535,6 @@ class Game:
                 self.player1.draw(self.screen)
                 self.player2.draw(self.screen)
                 self.ball.draw(self.screen)
-
-                _dbg_font = pygame.font.SysFont("Arial", 18, bold=True)
-                _n1 = _dbg_font.render(self.skin_p1["name"], True, (255, 255, 80))
-                _n2 = _dbg_font.render(self.skin_p2["name"], True, (80, 200, 255))
-                self.screen.blit(_n1, _n1.get_rect(centerx=self.player1.x + self.player1.width // 2,
-                                                    bottom=self.player1.y - 4))
-                self.screen.blit(_n2, _n2.get_rect(centerx=self.player2.x + self.player2.width // 2,
-                                                    bottom=self.player2.y - 4))
 
                 left_score = self.font_score.render(str(self.score_p1), True, (255,255,255))
                 right_score = self.font_score.render(str(self.score_p2), True, (255,255,255))

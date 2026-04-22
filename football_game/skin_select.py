@@ -72,7 +72,6 @@ def run_skin_select(screen, clock):
                             ready[i] = False
 
         if all(ready):
-            print(f"[skin_select] returning P1={sel[0]} ({SKINS[sel[0]]['name']})  P2={sel[1]} ({SKINS[sel[1]]['name']})")
             return sel[0], sel[1]
 
         screen.fill(BG)
