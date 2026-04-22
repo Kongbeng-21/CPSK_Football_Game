@@ -10,6 +10,8 @@ from .timer import Timer
 from .data_logger import DataLogger
 from .sound_manager import SoundManager
 from .skin_manager import SkinManager
+from football_game.skin_select import run_skin_select
+from football_game.player_skin import SKINS
 
 WIDTH = 1280
 HEIGHT = 720
@@ -24,29 +26,45 @@ class Game:
         self.field = pygame.image.load("assets/field.png")
         self.field = pygame.transform.scale(self.field, (WIDTH, HEIGHT))
 
-        ske_head = pygame.image.load("assets/ske_head.png")
-        ske_leg = pygame.image.load("assets/ske_leg.png").convert_alpha()
+        leg_w = 92
+        leg_h = 66
 
-        cpe_head = pygame.image.load("assets/cpe_head.png")
-        cpe_leg = pygame.image.load("assets/cpe_leg.png").convert_alpha()
+        self.sound_manager = SoundManager()
 
-        ske_head = pygame.transform.scale(ske_head, (70, 70))
-        cpe_head = pygame.transform.scale(cpe_head, (70, 70))
+        def _load_skin_imgs(skin_data, flip=False):
+            try:
+                h = pygame.image.load(skin_data["head"]).convert_alpha()
+            except Exception:
+                h = pygame.image.load(SKINS[0]["head"]).convert_alpha()
+            try:
+                l = pygame.image.load(skin_data["leg"]).convert_alpha()
+            except Exception:
+                l = pygame.image.load(SKINS[0]["leg"]).convert_alpha()
+            h = pygame.transform.scale(h, (100, 100))
+            l = pygame.transform.scale(l, (leg_w, leg_h))
+            if flip:
+                h = pygame.transform.flip(h, True, False)
+                l = pygame.transform.flip(l, True, False)
+            return h, l
 
-        leg_width = int(ske_head.get_height() * 0.8)
-        leg_height = int(ske_head.get_height() * 0.6)
+        self._load_skin_imgs = _load_skin_imgs
+        self._leg_w = leg_w
+        self._leg_h = leg_h
 
-        ske_leg = pygame.transform.scale(ske_leg, (leg_width, leg_height))
-        cpe_leg = pygame.transform.scale(cpe_leg, (leg_width, leg_height))
+        self.skin_p1 = SKINS[0]
+        self.skin_p2 = SKINS[1]
 
-        self.player1 = Player(200, ske_head, ske_leg, {
+        p1_head, p1_leg = _load_skin_imgs(self.skin_p1, flip=False)
+        p2_head, p2_leg = _load_skin_imgs(self.skin_p2, flip=True)
+
+        self.player1 = Player(200, p1_head, p1_leg, {
             "left": pygame.K_a,
             "right": pygame.K_d,
             "jump": pygame.K_w,
             "kick": pygame.K_e
         })
 
-        self.player2 = Player(1000, cpe_head, cpe_leg, {
+        self.player2 = Player(1000, p2_head, p2_leg, {
             "left": pygame.K_LEFT,
             "right": pygame.K_RIGHT,
             "jump": pygame.K_UP,
@@ -54,52 +72,46 @@ class Game:
         })
 
         self.ball = Ball()
-
         self.state = "menu"
-
-        self.sound_manager = SoundManager()
-        self.skin_manager = SkinManager(ske_head, ske_leg, cpe_head, cpe_leg)
-
-        self.logger = DataLogger()
-        self.match_id = self.logger.get_next_match_id() - 1
-
+        self.logger    = DataLogger()
+        self.match_id  = self.logger.get_next_match_id() - 1
         self.countdown_start_ticks = 0
 
-
-        self.font_big = pygame.font.SysFont("Avenir Next Condensed", 80, bold=True)
-        self.font_mid = pygame.font.SysFont("Avenir Next Condensed", 40)
+        self.font_big   = pygame.font.SysFont("Avenir Next Condensed", 80, bold=True)
+        self.font_mid   = pygame.font.SysFont("Avenir Next Condensed", 40)
         self.font_score = pygame.font.SysFont("Avenir Next Condensed", 64, bold=True)
 
         self.menu = Menu(self.screen, self.font_big, self.font_mid)
 
         self.score_p1 = 0
         self.score_p2 = 0
-
         self.kicks_p1 = 0
         self.kicks_p2 = 0
         self.jumps_p1 = 0
         self.jumps_p2 = 0
-        
         self.touches_p1 = 0
         self.touches_p2 = 0
-        self.shots_p1 = 0
-        self.shots_p2 = 0
-
+        self.shots_p1   = 0
+        self.shots_p2   = 0
         self.prev_touch_p1 = False
         self.prev_touch_p2 = False
 
-
-        self.left_goal = Goal(0, 300, 40, 120, "left")
-        self.right_goal = Goal(WIDTH - 40, 300, 40, 120, "right")
+        self.left_goal  = Goal(0,           300, 40, 120, "left")
+        self.right_goal = Goal(WIDTH - 40,  300, 40, 120, "right")
 
         self.timer = Timer(60, self.font_mid)
 
         self.gameover_selected = 0
-
-        self.last_logged_time = -1
+        self.last_logged_time  = -1
         self.prev_kicks = 0
         self.prev_jumps = 0
-
+    def _apply_skins(self, p1_idx, p2_idx):
+        self.skin_p1 = SKINS[p1_idx]
+        self.skin_p2 = SKINS[p2_idx]
+        print(f"[_apply_skins] P1={p1_idx} ({self.skin_p1['name']})  P2={p2_idx} ({self.skin_p2['name']})")
+        self.player1.head_img, self.player1.leg_img = self._load_skin_imgs(self.skin_p1, flip=False)
+        self.player2.head_img, self.player2.leg_img = self._load_skin_imgs(self.skin_p2, flip=True)
+        print(f"[_apply_skins] P1 head id={id(self.player1.head_img)}  P2 head id={id(self.player2.head_img)}")
     def reset_game(self):
         self.match_id += 1
         self.score_p1 = 0
@@ -132,6 +144,15 @@ class Game:
         self.last_logged_time = -1
         self.prev_kicks = 0
         self.prev_jumps = 0
+
+        self.player1.head_img, self.player1.leg_img = self._load_skin_imgs(self.skin_p1, flip=False)
+        self.player2.head_img, self.player2.leg_img = self._load_skin_imgs(self.skin_p2, flip=True)
+        def _px(surf):
+            w = surf.get_width()
+            return surf.get_at((w // 2, 5))[:3]   
+        p1_px = _px(self.player1.head_img)
+        p2_px = _px(self.player2.head_img)
+        print(f"[reset_game] P1={self.skin_p1['name']} hair_rgb={p1_px}  P2={self.skin_p2['name']} hair_rgb={p2_px}")
 
     def get_distance_to_ball(self, player):
         px = player.x + player.width / 2
@@ -221,7 +242,6 @@ class Game:
     ])
 
 
-
     def run(self):
         while True:
             for event in pygame.event.get():
@@ -237,10 +257,12 @@ class Game:
                             self.state = "tutorial"
 
                     if self.menu.start_game:
+                        self.menu.start_game = False
+                        skin_p1_idx, skin_p2_idx = run_skin_select(self.screen, self.clock)
+                        self._apply_skins(skin_p1_idx, skin_p2_idx)
                         self.reset_game()
                         self.state = "countdown"
                         self.countdown_start_ticks = pygame.time.get_ticks()
-                        self.menu.start_game = False
 
                     elif self.menu.show_stats:
                         self.state = "stats"
@@ -313,118 +335,141 @@ class Game:
 
             elif self.state == "stats":
                 W, H = self.screen.get_size()
+                cx = W // 2
+                lx = W // 4
+                rx = W * 3 // 4
 
                 stripe_w = 70
                 for i in range(W // stripe_w + 2):
                     c = (32, 108, 32) if i % 2 == 0 else (26, 90, 26)
                     pygame.draw.rect(self.screen, c, (i * stripe_w, 0, stripe_w, H))
 
-                lc = (255, 255, 255, 55)
-                lw = 2
-                m = 60
-                fw = W - m * 2
-                fh = H - m * 2
-                fx = m
-                fy = m
-                s_lc = (255, 255, 255, 55)
-
                 field_surf = pygame.Surface((W, H), pygame.SRCALPHA)
-                pygame.draw.rect(field_surf, s_lc, (fx, fy, fw, fh), lw)
-                pygame.draw.line(field_surf, s_lc, (W // 2, fy), (W // 2, fy + fh), lw)
-                pygame.draw.circle(field_surf, s_lc, (W // 2, H // 2), 90, lw)
+                s_lc = (255, 255, 255, 40)
+                pygame.draw.rect(field_surf, s_lc, (60, 60, W - 120, H - 120), 2)
+                pygame.draw.line(field_surf, s_lc, (cx, 60), (cx, H - 60), 2)
+                pygame.draw.circle(field_surf, s_lc, (cx, H // 2), 90, 2)
                 self.screen.blit(field_surf, (0, 0))
 
                 overlay = pygame.Surface((W, H), pygame.SRCALPHA)
-                overlay.fill((0, 0, 0, 120))
+                overlay.fill((0, 0, 0, 125))
                 self.screen.blit(overlay, (0, 0))
 
-                title_font = pygame.font.SysFont("Avenir Next Condensed", 56, bold=True)
-                stat_font = pygame.font.SysFont("Avenir Next Condensed", 22, bold=True)
-                value_font = pygame.font.SysFont("Avenir Next Condensed", 34, bold=True)
-                hint_font = pygame.font.SysFont("Avenir Next Condensed", 22, bold=True)
+                title_font  = pygame.font.SysFont("Avenir Next Condensed", 54, bold=True)
+                team_font   = pygame.font.SysFont("Avenir Next Condensed", 32, bold=True)
+                label_font  = pygame.font.SysFont("Avenir Next Condensed", 19, bold=True)
+                value_font  = pygame.font.SysFont("Avenir Next Condensed", 40, bold=True)
+                record_font = pygame.font.SysFont("Avenir Next Condensed", 36, bold=True)
+                hint_font   = pygame.font.SysFont("Avenir Next Condensed", 20, bold=True)
 
                 title = title_font.render("MATCH STATS", True, (255, 255, 255))
-                self.screen.blit(title, title.get_rect(center=(W // 2, 72)))
-                pygame.draw.rect(self.screen, (255, 210, 0), (W // 2 - 180, 106, 360, 5), border_radius=3)
+                self.screen.blit(title, title.get_rect(center=(cx, 62)))
+                pygame.draw.rect(self.screen, (255, 210, 0), (cx - 170, 94, 340, 4), border_radius=2)
 
                 try:
                     df = pd.read_csv("game_data.csv")
+                    for _col in ["score_p1", "score_p2", "kicks_p1", "kicks_p2",
+                                 "shots_p1", "shots_p2", "possession"]:
+                        df[_col] = pd.to_numeric(df[_col], errors="coerce")
                     last = df.groupby("match_id").last().reset_index()
-
                     matches_played = len(last)
-
-                    last_score_p1 = int(last.iloc[-1]["score_p1"])
-                    last_score_p2 = int(last.iloc[-1]["score_p2"])
-                    last_result = f"SKE  {last_score_p1}  –  {last_score_p2}  CPE"
-
                     ske_wins = int((last["score_p1"] > last["score_p2"]).sum())
-                    draws = int((last["score_p1"] == last["score_p2"]).sum())
+                    draws    = int((last["score_p1"] == last["score_p2"]).sum())
                     cpe_wins = int((last["score_p1"] < last["score_p2"]).sum())
-                    win_record = f"SKE {ske_wins}W  {draws}D  CPE {cpe_wins}W"
-
-                    total_goals_p1 = int(last["score_p1"].sum())
-                    total_goals_p2 = int(last["score_p2"].sum())
-                    total_goals = f"SKE {total_goals_p1}  |  CPE {total_goals_p2}"
-
-                    avg_poss_p1 = round(df["possession"].mean(), 1)
-                    avg_poss_p2 = round(100 - avg_poss_p1, 1)
-                    avg_possession = f"SKE {avg_poss_p1}%  |  CPE {avg_poss_p2}%"
-
-                    total_kicks_p1 = int(last["kicks_p1"].sum())
-                    total_kicks_p2 = int(last["kicks_p2"].sum())
-                    total_kicks = f"SKE {total_kicks_p1}  |  CPE {total_kicks_p2}"
-
-                    total_shots_p1 = int(last["shots_p1"].sum())
-                    total_shots_p2 = int(last["shots_p2"].sum())
-                    total_shots = f"SKE {total_shots_p1}  |  CPE {total_shots_p2}"
-
-                    stats = [
-                        ("MATCHES PLAYED", str(matches_played), (255, 210, 0)),
-                        ("LAST RESULT", last_result, (170, 255, 170)),
-                        ("WIN RECORD", win_record, (255, 210, 0)),
-                        ("TOTAL GOALS", total_goals, (85, 220, 255)),
-                        ("AVG POSSESSION", avg_possession, (200, 160, 255)),
-                        ("TOTAL KICKS", total_kicks, (255, 180, 80)),
-                    ]
-
+                    ske_wr   = round(ske_wins / matches_played * 100) if matches_played else 0
+                    cpe_wr   = round(cpe_wins / matches_played * 100) if matches_played else 0
+                    g1       = int(last["score_p1"].sum())
+                    g2       = int(last["score_p2"].sum())
+                    avg_poss = round(df["possession"].mean(), 1)
+                    tk1 = int(last["kicks_p1"].sum())
+                    tk2 = int(last["kicks_p2"].sum())
+                    ts1 = int(last["shots_p1"].sum())
+                    ts2 = int(last["shots_p2"].sum())
+                    acc1 = round(ts1 / tk1 * 100) if tk1 else 0
+                    acc2 = round(ts2 / tk2 * 100) if tk2 else 0
+                    no_data = False
                 except Exception:
-                    stats = [
-                        ("MATCHES PLAYED", "–", (255, 210, 0)),
-                        ("LAST RESULT", "PLAY FIRST", (170, 255, 170)),
-                        ("WIN RECORD", "–", (255, 210, 0)),
-                        ("TOTAL GOALS", "–", (85, 220, 255)),
-                        ("AVG POSSESSION", "–", (200, 160, 255)),
-                        ("TOTAL KICKS", "–", (255, 180, 80)),
-                    ]
+                    matches_played = ske_wins = draws = cpe_wins = 0
+                    ske_wr = cpe_wr = g1 = g2 = acc1 = acc2 = 0
+                    avg_poss = 50.0
+                    no_data = True
 
-                card_w = 330
-                card_h = 88
-                gap_x = 28
-                gap_y = 20
+                mp_w, mp_h = 260, 64
+                mp_x, mp_y = cx - mp_w // 2, 108
+                mp_card = pygame.Surface((mp_w, mp_h), pygame.SRCALPHA)
+                mp_card.fill((5, 35, 10, 210))
+                self.screen.blit(mp_card, (mp_x, mp_y))
+                pygame.draw.rect(self.screen, (80, 160, 80), (mp_x, mp_y, mp_w, mp_h), 2, border_radius=6)
+                mp_lbl = label_font.render("MATCHES PLAYED", True, (180, 220, 180))
+                mp_val = value_font.render(str(matches_played), True, (255, 210, 0))
+                self.screen.blit(mp_lbl, mp_lbl.get_rect(center=(cx, mp_y + 18)))
+                self.screen.blit(mp_val, mp_val.get_rect(center=(cx, mp_y + 47)))
 
-                grid_w = card_w * 2 + gap_x
-                start_x = W // 2 - grid_w // 2
-                start_y = 132
+                th_y = 192
+                ske_surf = team_font.render("SKE", True, (255, 210, 0))
+                cpe_surf = team_font.render("CPE", True, (100, 190, 255))
+                self.screen.blit(ske_surf, ske_surf.get_rect(center=(lx, th_y)))
+                self.screen.blit(cpe_surf, cpe_surf.get_rect(center=(rx, th_y)))
 
-                for i, (label, value, color) in enumerate(stats):
-                    col = i % 2
-                    row = i // 2
-                    x = start_x + col * (card_w + gap_x)
-                    y = start_y + row * (card_h + gap_y)
+                div_top = th_y + 22
+                div_bot = H - 52
+                pygame.draw.line(self.screen, (70, 130, 70), (cx, div_top), (cx, div_bot), 1)
+                pygame.draw.line(self.screen, (60, 110, 60), (110, div_top), (W - 110, div_top), 1)
 
-                    card = pygame.Surface((card_w, card_h), pygame.SRCALPHA)
-                    card.fill((5, 35, 10, 215))
-                    self.screen.blit(card, (x, y))
-                    pygame.draw.rect(self.screen, (80, 160, 80), (x, y, card_w, card_h), 2, border_radius=8)
-                    pygame.draw.rect(self.screen, color, (x, y, 6, card_h), border_radius=4)
+                SKE_Y = (255, 210,   0)
+                CPE_B = (100, 190, 255)
+                GRN   = (170, 255, 170)
+                PUR   = (200, 160, 255)
+                ORG   = (255, 180,  80)
 
-                    label_text = stat_font.render(label, True, (200, 225, 200))
-                    value_text = value_font.render(value, True, color)
-                    self.screen.blit(label_text, (x + 20, y + 12))
-                    self.screen.blit(value_text, (x + 20, y + 48))
+                comp_rows = [
+                    ("WIN RATE",       f"{ske_wr}%",          f"{cpe_wr}%",          GRN, GRN),
+                    ("TOTAL GOALS",    str(g1),               str(g2),               SKE_Y, CPE_B),
+                    ("AVG POSSESSION", f"{avg_poss}%",        f"{round(100-avg_poss,1)}%", PUR, PUR),
+                    ("SHOT ACCURACY",  f"{acc1}%",            f"{acc2}%",            ORG, ORG),
+                ] if not no_data else [
+                    ("WIN RATE",       "–", "–", GRN, GRN),
+                    ("TOTAL GOALS",    "–", "–", SKE_Y, CPE_B),
+                    ("AVG POSSESSION", "–", "–", PUR, PUR),
+                    ("SHOT ACCURACY",  "–", "–", ORG, ORG),
+                ]
 
-                hint = hint_font.render("Press ESC to return to menu", True, (180, 180, 180))
-                self.screen.blit(hint, hint.get_rect(center=(W // 2, H - 32)))
+                row_y0  = 222
+                row_gap = 74
+
+                for i, (lbl, sv, cv, sc, cc) in enumerate(comp_rows):
+                    ry = row_y0 + i * row_gap
+                    if i > 0:
+                        pygame.draw.line(self.screen, (55, 105, 55), (110, ry - 8), (W - 110, ry - 8), 1)
+
+                    lbl_surf = label_font.render(lbl, True, (170, 215, 170))
+                    self.screen.blit(lbl_surf, lbl_surf.get_rect(center=(cx, ry + 6)))
+
+                    sv_surf = value_font.render(sv, True, sc)
+                    cv_surf = value_font.render(cv, True, cc)
+                    self.screen.blit(sv_surf, sv_surf.get_rect(center=(lx, ry + 38)))
+                    self.screen.blit(cv_surf, cv_surf.get_rect(center=(rx, ry + 38)))
+
+                wr_y = row_y0 + 4 * row_gap
+                pygame.draw.line(self.screen, (55, 105, 55), (110, wr_y - 8), (W - 110, wr_y - 8), 1)
+
+                wr_lbl = label_font.render("WIN RECORD", True, (170, 215, 170))
+                self.screen.blit(wr_lbl, wr_lbl.get_rect(center=(cx, wr_y + 6)))
+
+                if not no_data:
+                    w_ske = record_font.render(f"{ske_wins}W", True, (255, 210,   0))
+                    w_d   = record_font.render(f"{draws}D",    True, (210, 210, 210))
+                    w_cpe = record_font.render(f"{cpe_wins}W", True, (100, 190, 255))
+                    dot_l = record_font.render("·", True, (130, 130, 130))
+                    dot_r = record_font.render("·", True, (130, 130, 130))
+                    self.screen.blit(w_ske, w_ske.get_rect(center=(lx,      wr_y + 40)))
+                    self.screen.blit(dot_l, dot_l.get_rect(center=(cx - 70, wr_y + 40)))
+                    self.screen.blit(w_d,   w_d.get_rect(  center=(cx,      wr_y + 40)))
+                    self.screen.blit(dot_r, dot_r.get_rect(center=(cx + 70, wr_y + 40)))
+                    self.screen.blit(w_cpe, w_cpe.get_rect(center=(rx,      wr_y + 40)))
+
+                hint = hint_font.render("Press ESC to return to menu", True, (160, 160, 160))
+                self.screen.blit(hint, hint.get_rect(center=(cx, H - 26)))
 
 
 
@@ -440,6 +485,9 @@ class Game:
                 if elapsed >= 4:
                     self.state = "gameplay"
                     self.timer.start_timer()
+                    print(f"[gameplay start] P1 head size={self.player1.head_img.get_size()}  P2 head size={self.player2.head_img.get_size()}")
+                    print(f"[gameplay start] P1 skin={self.skin_p1['name']}  P2 skin={self.skin_p2['name']}")
+                    print(f"[gameplay start] P1 head id={id(self.player1.head_img)}  P2 head id={id(self.player2.head_img)}")
                 else:
                     if elapsed == 3:
                         cd_text = "GO!"
@@ -465,7 +513,6 @@ class Game:
                 self.timer.draw_timer(self.screen)
 
                 if self.timer.is_time_up():
-                    self.sound_manager.play_timeout()
                     self.state = "game_over"
 
                 keys = pygame.key.get_pressed()
@@ -499,11 +546,19 @@ class Game:
                 self.player2.draw(self.screen)
                 self.ball.draw(self.screen)
 
+                _dbg_font = pygame.font.SysFont("Arial", 18, bold=True)
+                _n1 = _dbg_font.render(self.skin_p1["name"], True, (255, 255, 80))
+                _n2 = _dbg_font.render(self.skin_p2["name"], True, (80, 200, 255))
+                self.screen.blit(_n1, _n1.get_rect(centerx=self.player1.x + self.player1.width // 2,
+                                                    bottom=self.player1.y - 4))
+                self.screen.blit(_n2, _n2.get_rect(centerx=self.player2.x + self.player2.width // 2,
+                                                    bottom=self.player2.y - 4))
+
                 left_score = self.font_score.render(str(self.score_p1), True, (255,255,255))
                 right_score = self.font_score.render(str(self.score_p2), True, (255,255,255))
 
-                self.screen.blit(left_score, (490, 75))
-                self.screen.blit(right_score, (750, 75))
+                self.screen.blit(left_score, (490, 62))
+                self.screen.blit(right_score, (750, 62))
 
             elif self.state == "game_over":
                 W, H = self.screen.get_size()

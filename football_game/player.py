@@ -117,8 +117,9 @@ class Player:
     def draw(self, screen):
         screen.blit(self.head_img, (self.x, self.y))
 
-        leg_x = self.x + 10
-        leg_y = self.y + self.head_img.get_height() - 10
+        # Center boot under head (head=100w, boot=92w → offset +4 to center)
+        leg_x = self.x + 4
+        leg_y = self.y + self.head_img.get_height() - 12
 
         if self.kicking:
             if self.facing_right:

@@ -78,22 +78,31 @@ ax.plot(last["match_id"], last["score_p2"], "o-",
 ax.legend(fontsize=8, framealpha=0.7)
 
 ax = fig.add_subplot(gs[0, 1])
-style(ax, "Winner Count", "", "Matches")
-wc   = wins["winner"].value_counts().reindex(["p1", "draw", "p2"], fill_value=0)
-bars = ax.bar(["SKE", "DRAW", "CPE"], wc.values,
+style(ax, "Win Rate  ↔  Win Record", "", "Matches")
+ske_w = int((last["score_p1"] > last["score_p2"]).sum())
+draw_ = int((last["score_p1"] == last["score_p2"]).sum())
+cpe_w = int((last["score_p1"] < last["score_p2"]).sum())
+ske_wr = round(ske_w / total * 100) if total else 0
+cpe_wr = round(cpe_w / total * 100) if total else 0
+bars = ax.bar(["SKE", "DRAW", "CPE"], [ske_w, draw_, cpe_w],
               color=[SKE_YELLOW, DRAW_GRAY, CPE_BLUE],
               edgecolor="#888", linewidth=0.5, width=0.45)
-for b, v in zip(bars, wc.values):
+for b, v, pct in zip(bars, [ske_w, draw_, cpe_w],
+                     [f"{ske_wr}%", "", f"{cpe_wr}%"]):
     ax.text(b.get_x() + b.get_width()/2, v + 0.4, str(v),
             ha="center", va="bottom", fontsize=10, fontweight="bold", color=TEXT)
+    if pct:
+        ax.text(b.get_x() + b.get_width()/2, v / 2, pct,
+                ha="center", va="center", fontsize=9, color="white", fontweight="bold")
 
 ax = fig.add_subplot(gs[0, 2])
-style(ax, "Avg Ball Speed by Match", "Match ID", "Speed (px/s)")
-spd = df.groupby("match_id")["ball_speed"].mean()
-ax.bar(spd.index, spd.values, color=GREEN_MID,
-       edgecolor=GREEN_DARK, linewidth=0.3, width=0.8)
-ax.axhline(spd.mean(), color="tomato", lw=1.4, ls="--",
-           label=f"avg {spd.mean():.1f}")
+style(ax, "Shot Accuracy by Match\n(shots ÷ kicks %)", "Match ID", "Accuracy (%)")
+acc_p1 = (last["shots_p1"] / last["kicks_p1"].replace(0, float("nan")) * 100).fillna(0)
+acc_p2 = (last["shots_p2"] / last["kicks_p2"].replace(0, float("nan")) * 100).fillna(0)
+ax.plot(last["match_id"], acc_p1, "o-", color=SKE_YELLOW, lw=1.2, ms=3, label="SKE")
+ax.plot(last["match_id"], acc_p2, "o-", color=CPE_BLUE,   lw=1.2, ms=3, label="CPE")
+ax.axhline(acc_p1.mean(), color=SKE_YELLOW, lw=1, ls="--", alpha=0.6)
+ax.axhline(acc_p2.mean(), color=CPE_BLUE,   lw=1, ls="--", alpha=0.6)
 ax.legend(fontsize=8)
 
 
