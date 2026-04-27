@@ -1,5 +1,7 @@
 import pygame
 import sys
+import subprocess
+import os
 import pandas as pd
 import math
 from .player import Player
@@ -188,6 +190,11 @@ class Game:
             return "CPE"
         return "DRAW"
 
+    def _launch_stats_viewer(self):
+        """Open the interactive stats dashboard (data_analyze.py) in a separate process."""
+        analyze_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), "data_analyze.py")
+        subprocess.Popen([sys.executable, analyze_path])
+
     def update_touch_stats(self):
         touching_p1 = self.get_distance_to_ball(self.player1) < self.player1.radius + self.ball.radius + 5
         touching_p2 = self.get_distance_to_ball(self.player2) < self.player2.radius + self.ball.radius + 5
@@ -274,6 +281,11 @@ class Game:
                     if event.type == pygame.KEYDOWN:
                         if event.key == pygame.K_ESCAPE:
                             self.state = "menu"
+                        elif event.key == pygame.K_c:
+                            self._launch_stats_viewer()
+                    elif event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
+                        if hasattr(self, "_stats_btn_rect") and self._stats_btn_rect.collidepoint(event.pos):
+                            self._launch_stats_viewer()
 
                 elif self.state == "gameplay":
                     if event.type == pygame.KEYDOWN:
@@ -461,8 +473,43 @@ class Game:
                     self.screen.blit(dot_r, dot_r.get_rect(center=(cx + 70, wr_y + 40)))
                     self.screen.blit(w_cpe, w_cpe.get_rect(center=(rx,      wr_y + 40)))
 
-                hint = hint_font.render("Press ESC to return to menu", True, (160, 160, 160))
-                self.screen.blit(hint, hint.get_rect(center=(cx, H - 26)))
+                # ── "VIEW FULL CHARTS" button ─────────────────────────────────
+                btn_w, btn_h = 340, 50
+                btn_x = cx - btn_w // 2
+                btn_y = H - 108
+
+                mouse_pos = pygame.mouse.get_pos()
+                btn_rect  = pygame.Rect(btn_x, btn_y, btn_w, btn_h)
+                self._stats_btn_rect = btn_rect   # store for click detection
+                btn_hovered = btn_rect.collidepoint(mouse_pos)
+
+                # Button shadow
+                shadow_rect = pygame.Rect(btn_x + 3, btn_y + 3, btn_w, btn_h)
+                shadow_surf = pygame.Surface((btn_w, btn_h), pygame.SRCALPHA)
+                shadow_surf.fill((0, 0, 0, 80))
+                self.screen.blit(shadow_surf, shadow_rect.topleft)
+
+                # Button fill
+                btn_color = (255, 225, 60) if btn_hovered else (220, 190, 0)
+                pygame.draw.rect(self.screen, btn_color, btn_rect, border_radius=10)
+
+                # Button icon strip (left edge accent)
+                pygame.draw.rect(self.screen, (30, 100, 30),
+                                 (btn_x, btn_y, 6, btn_h), border_radius=10)
+
+                # Button label
+                btn_font  = pygame.font.SysFont("Avenir Next Condensed", 26, bold=True)
+                btn_text  = btn_font.render("  VIEW FULL CHARTS", True, (15, 30, 15))
+                self.screen.blit(btn_text, btn_text.get_rect(center=btn_rect.center))
+
+                # Cursor change on hover
+                pygame.mouse.set_cursor(
+                    pygame.SYSTEM_CURSOR_HAND if btn_hovered else pygame.SYSTEM_CURSOR_ARROW
+                )
+
+                # Hints
+                hint1 = hint_font.render("[ C ] open charts   |   ESC return to menu", True, (155, 175, 155))
+                self.screen.blit(hint1, hint1.get_rect(center=(cx, H - 26)))
 
 
 

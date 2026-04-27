@@ -1,13 +1,12 @@
 import pandas as pd
 import matplotlib
-matplotlib.use("Agg")                   # non-interactive backend — no GUI conflict
+matplotlib.use("Agg")                  
 import matplotlib.pyplot as plt
 import matplotlib.gridspec as gridspec
 import numpy as np
 import os
 import glob
 
-# ── Config ────────────────────────────────────────────────────────────────────
 CSV_PATH = "game_data.csv"
 OUT_DIR  = "stats"
 OUT_FILE = os.path.join(OUT_DIR, "stats_dashboard.png")
@@ -21,7 +20,6 @@ BG         = "#F4F8F4"
 SIDEBAR_BG = "#1E3A1E"
 TEXT       = "#1A1A1A"
 
-# ── Load data ─────────────────────────────────────────────────────────────────
 if not os.path.exists(CSV_PATH):
     print(f"[analyze] {CSV_PATH} not found — play at least one match first.")
     exit()
@@ -50,7 +48,6 @@ merged      = last.merge(poss_m, on="match_id")
 
 print(f"[analyze] {total} matches  |  {len(df):,} rows loaded")
 
-# ── Console summary ───────────────────────────────────────────────────────────
 print(f"\n{'='*55}")
 print(f"  SUMMARY STATISTICS  ({total} matches, {len(df):,} rows)")
 print(f"{'='*55}")
@@ -67,7 +64,6 @@ print(f"  Win record  SKE {ske_w}W | Draw {draw_} | CPE {cpe_w}W (/{total})")
 print(f"{'='*55}\n")
 
 
-# ── Shared style helper ───────────────────────────────────────────────────────
 def style(ax, title="", xlabel="", ylabel="", fs=13, cat_color=TEXT):
     ax.set_facecolor("#EEF7EE")
     for sp in ["top", "right"]:
@@ -82,11 +78,10 @@ def style(ax, title="", xlabel="", ylabel="", fs=13, cat_color=TEXT):
     ax.set_axisbelow(True)
 
 
-# ── Individual panel draw functions ──────────────────────────────────────────
-C1 = "#2E7D32"   # MATCH OVERVIEW color
-C2 = "#1565C0"   # PLAYER ACTIVITY color
-C3 = "#6A1B4D"   # GAMEPLAY FLOW color
-C4 = "#BF360C"   # SUMMARY STATS color
+C1 = "#2E7D32"  
+C2 = "#1565C0"   
+C3 = "#6A1B4D"   
+C4 = "#BF360C"   
 
 def draw_score(ax):
     style(ax, "Final Score by Match", "Match ID", "Goals", cat_color=C1)
@@ -115,7 +110,6 @@ def draw_winrate(ax):
                     fontsize=13, color="white", fontweight="bold")
 
 def draw_accuracy(ax):
-    # Cap accuracy at 100% (shots can exceed kicks due to tracking logic)
     a1 = acc_p1.clip(upper=100)
     a2 = acc_p2.clip(upper=100)
     style(ax, "Shot Accuracy by Match  (shots ÷ kicks × 100%)",
@@ -260,7 +254,6 @@ def draw_table(ax):
             fontweight="bold")
 
 
-# ── Save full dashboard PNG (no UI, Agg-safe) ─────────────────────────────────
 for old in glob.glob(os.path.join(OUT_DIR, "*.png")):
     os.remove(old)
 
@@ -292,10 +285,6 @@ plt.close(_fig)
 print(f"[analyze] Dashboard saved → {OUT_FILE}")
 
 
-# ── Interactive viewer (tkinter + Agg + PIL — macOS safe) ────────────────────
-# Uses matplotlib Agg to render charts as PNG images, then displays via PIL.
-# This avoids all macOS/tkinter backend crashes.
-
 PANELS = [
     ("Final Score by Match",     draw_score,        "MATCH OVERVIEW"),
     ("Win Rate & Win Record",    draw_winrate,       "MATCH OVERVIEW"),
@@ -326,7 +315,7 @@ from PIL import Image, ImageTk
 
 
 class StatsViewer:
-    IMG_W, IMG_H = 1060, 620   # fixed chart render size (px)
+    IMG_W, IMG_H = 1060, 620  
 
     def __init__(self, root):
         self.root = root
@@ -334,7 +323,7 @@ class StatsViewer:
         self.root.resizable(False, False)
         self.root.configure(bg="#EAEEF0")
 
-        # ── Top control bar ───────────────────────────────────────────────────
+
         ctrl = tk.Frame(self.root, bg="#D6DDE0", pady=10, padx=14)
         ctrl.pack(fill="x", side="top")
 
@@ -345,7 +334,6 @@ class StatsViewer:
                  bg="#D6DDE0", fg="#555",
                  font=("Helvetica", 10)).pack(side=tk.LEFT, padx=(0, 28))
 
-        # Category dropdown
         tk.Label(ctrl, text="Category:",
                  bg="#D6DDE0", font=("Helvetica", 11)).pack(side=tk.LEFT, padx=(0, 5))
         self.cat_var = tk.StringVar(value=CATEGORIES[0])
@@ -355,7 +343,6 @@ class StatsViewer:
         self.cat_dd.pack(side=tk.LEFT, padx=(0, 22))
         self.cat_dd.bind("<<ComboboxSelected>>", self._on_cat)
 
-        # Chart dropdown
         tk.Label(ctrl, text="Chart:",
                  bg="#D6DDE0", font=("Helvetica", 11)).pack(side=tk.LEFT, padx=(0, 5))
         init_charts = [lbl for lbl, _ in CAT_PANELS[CATEGORIES[0]]]
@@ -366,16 +353,13 @@ class StatsViewer:
         self.chart_dd.pack(side=tk.LEFT)
         self.chart_dd.bind("<<ComboboxSelected>>", self._on_chart)
 
-        # ── Coloured category strip ───────────────────────────────────────────
         self.strip = tk.Frame(self.root, height=5,
                               bg=CAT_COLOR_HEX[CATEGORIES[0]])
         self.strip.pack(fill="x", side="top")
 
-        # ── Image display ─────────────────────────────────────────────────────
         self.img_lbl = tk.Label(self.root, bg="#EAEEF0")
         self.img_lbl.pack(padx=10, pady=(6, 10))
-
-        # Apply combobox style
+        
         s = ttk.Style()
         s.theme_use("clam")
         s.configure("TCombobox", padding=4,
@@ -383,7 +367,6 @@ class StatsViewer:
 
         self._render()
 
-    # ── Callbacks ─────────────────────────────────────────────────────────────
     def _on_cat(self, _=None):
         cat    = self.cat_var.get()
         charts = [lbl for lbl, _ in CAT_PANELS[cat]]
@@ -396,7 +379,6 @@ class StatsViewer:
         self.strip.configure(bg=CAT_COLOR_HEX[self.cat_var.get()])
         self._render()
 
-    # ── Render chart → PNG → display ──────────────────────────────────────────
     def _render(self):
         cat        = self.cat_var.get()
         chart_name = self.chart_var.get()
@@ -405,7 +387,6 @@ class StatsViewer:
         if draw_fn is None:
             return
 
-        # Draw with matplotlib (Agg — saves to file, no GUI window)
         dpi = 110
         fig_w = self.IMG_W / dpi
         fig_h = self.IMG_H / dpi
@@ -417,14 +398,12 @@ class StatsViewer:
         fig.savefig(TEMP_PNG, dpi=dpi, bbox_inches="tight", facecolor=BG)
         plt.close(fig)
 
-        # Load saved PNG and show in tkinter
         img         = Image.open(TEMP_PNG).resize(
                           (self.IMG_W, self.IMG_H), Image.LANCZOS)
-        self.photo  = ImageTk.PhotoImage(img)   # keep reference
+        self.photo  = ImageTk.PhotoImage(img)   
         self.img_lbl.config(image=self.photo)
 
 
-# ── Launch ─────────────────────────────────────────────────────────────────────
 root = tk.Tk()
 StatsViewer(root)
 root.mainloop()
