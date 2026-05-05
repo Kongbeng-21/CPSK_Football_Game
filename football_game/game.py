@@ -14,6 +14,7 @@ from .sound_manager import SoundManager
 from .skin_manager import SkinManager
 from football_game.skin_select import run_skin_select
 from football_game.player_skin import SKINS
+from football_game.chart_viewer import run_chart_viewer
 
 WIDTH = 1280
 HEIGHT = 720
@@ -190,10 +191,9 @@ class Game:
             return "CPE"
         return "DRAW"
 
-    def _launch_stats_viewer(self):
-        """Open the interactive stats dashboard (data_analyze.py) in a separate process."""
-        analyze_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), "data_analyze.py")
-        subprocess.Popen([sys.executable, analyze_path])
+    def _open_chart_viewer(self):
+        """Open the in-game chart viewer (runs inside pygame, no external window)."""
+        run_chart_viewer(self.screen, self.clock)
 
     def update_touch_stats(self):
         touching_p1 = self.get_distance_to_ball(self.player1) < self.player1.radius + self.ball.radius + 5
@@ -282,10 +282,10 @@ class Game:
                         if event.key == pygame.K_ESCAPE:
                             self.state = "menu"
                         elif event.key == pygame.K_c:
-                            self._launch_stats_viewer()
+                            self._open_chart_viewer()
                     elif event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
                         if hasattr(self, "_stats_btn_rect") and self._stats_btn_rect.collidepoint(event.pos):
-                            self._launch_stats_viewer()
+                            self._open_chart_viewer()
 
                 elif self.state == "gameplay":
                     if event.type == pygame.KEYDOWN:
