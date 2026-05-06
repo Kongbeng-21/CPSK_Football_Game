@@ -80,9 +80,17 @@ class Game:
         self.match_id  = self.logger.get_next_match_id() - 1
         self.countdown_start_ticks = 0
 
-        self.font_big   = pygame.font.SysFont("Avenir Next Condensed", 80, bold=True)
-        self.font_mid   = pygame.font.SysFont("Avenir Next Condensed", 40)
-        self.font_score = pygame.font.SysFont("Avenir Next Condensed", 64, bold=True)
+        # Bundled font — identical metrics on macOS, Windows, Linux
+        _FONT_FILE  = os.path.join("assets", "fonts", "DejaVuSansCondensed-Bold.ttf")
+        if os.path.exists(_FONT_FILE):
+            self.font_big   = pygame.font.Font(_FONT_FILE, 80)
+            self.font_mid   = pygame.font.Font(_FONT_FILE, 40)
+            self.font_score = pygame.font.Font(_FONT_FILE, 64)
+        else:
+            # Fallback if font file is missing
+            self.font_big   = pygame.font.SysFont("Arial", 80, bold=True)
+            self.font_mid   = pygame.font.SysFont("Arial", 40, bold=True)
+            self.font_score = pygame.font.SysFont("Arial", 64, bold=True)
 
         self.menu = Menu(self.screen, self.font_big, self.font_mid)
 
@@ -583,11 +591,13 @@ class Game:
                 self.player2.draw(self.screen)
                 self.ball.draw(self.screen)
 
-                left_score = self.font_score.render(str(self.score_p1), True, (255,255,255))
-                right_score = self.font_score.render(str(self.score_p2), True, (255,255,255))
-
-                self.screen.blit(left_score, (490, 62))
-                self.screen.blit(right_score, (750, 62))
+                # Center scores on the scoreboard boxes in field.png (scaled to 1280×720)
+                # SKE box center ≈ (544, 82)   CPE box center ≈ (736, 82)
+                left_score  = self.font_score.render(str(self.score_p1), True, (255, 255, 255))
+                right_score = self.font_score.render(str(self.score_p2), True, (255, 255, 255))
+                # Center on the actual score boxes in field.png (measured at 1280×720)
+                self.screen.blit(left_score,  left_score.get_rect(center=(505, 105)))
+                self.screen.blit(right_score, right_score.get_rect(center=(776, 105)))
 
             elif self.state == "game_over":
                 W, H = self.screen.get_size()
