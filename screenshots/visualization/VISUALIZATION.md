@@ -7,14 +7,12 @@ It reads `game_data.csv` and produces a 9-panel PNG saved to `stats/stats_dashbo
 
 ---
 
-## Full Dashboard
+## Summary Statistics Table
 
-![Overall Dashboard](overall_dashboard.png)
+![Summary Statistics Table](panel_summary_table.png)
 
-The dashboard is divided into three rows:
-- **Row 1 — Match Overview**: score history, win record, shot accuracy
-- **Row 2 — Player Activity**: kicks per match, jumps per match, total shots & touches
-- **Row 3 — Gameplay Flow**: score momentum over time, possession pie chart, possession vs. result scatter
+This summary statistics table presents the main gameplay features collected in the project, including ball speed, kicks, jumps, and goals. For each feature, it shows the mean, minimum, and maximum values across all recorded matches, along with the source class and the visualization method used in the dashboard.
+
 
 ---
 
