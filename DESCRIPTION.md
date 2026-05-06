@@ -5,37 +5,34 @@
 - **Project Name:** CPSK Football Game — SKE vs CPE
 - **Brief Description:**
 
-  CPSK Football Game is a 2-player local-multiplayer football (soccer) game built with Python and Pygame.
-  Two players share a keyboard and compete in a 60-second match, each trying to kick a physics-simulated
-  ball into the opponent's goal. Players can choose from five distinct character skins before each match.
+  CPSK Football Game is a 2-player local multiplayer football game developed with Python and Pygame. Two players share one keyboard, choose character skins, and compete in a timed match by kicking a physics-driven ball into the opponent's goal.
 
-  Beyond the game itself, the project includes a data component: every second of every match is logged
-  to a CSV file. A separate analysis script reads this data and generates a 9-panel statistics dashboard
-  that shows win rates, shot accuracy, possession, kicks, jumps, and gameplay momentum over time.
+  In addition to gameplay, the project includes a data component. Match data is stored in `game_data.csv` and analyzed through both an external dashboard (`data_analyze.py`) and an in-game chart viewer (`football_game/chart_viewer.py`). This allows players to review score trends, player activity, and match results across multiple games.
 
 - **Problem Statement:**
-  Many simple 2-player games lack a statistical feedback loop. This project combines accessible arcade
-  gameplay with meaningful post-match data visualisation, letting players see how their performance
-  evolves across sessions.
+  Many small local multiplayer games focus only on the match itself and provide no meaningful feedback after the round ends. This project aims to combine arcade gameplay with a statistics layer so that players can review performance, compare outcomes, and observe patterns over time.
 
-- **Target Users:** Two players sharing a computer, students in a lab setting, or anyone wanting a
-  quick competitive local multiplayer experience.
+- **Target Users:**
+  Students, friends sharing a computer, and players who want a simple competitive 2-player game with post-match statistics.
 
 - **Key Features:**
-  - 2-player local multiplayer on a single keyboard
-  - 5 selectable character skins with individual head and boot designs
-  - Real-time ball physics (gravity, bounce, air resistance, wall reflection)
-  - 60-second timed matches with live countdown and goal detection
-  - Animated main menu with football pitch overlay and particle effects
-  - Per-second statistics logging (19 features) saved to `game_data.csv`
-  - 9-panel matplotlib statistics dashboard generated from historical match data
-  - Sound effects for kicks and goals
+  - 2-player local multiplayer on one keyboard
+  - 5 selectable player skins
+  - Real-time ball physics and collision handling
+  - Goal detection and timed match flow
+  - Animated menu and tutorial screen
+  - Per-second data logging to CSV
+  - In-game chart viewer for browsing statistics
+  - External dashboard image with multiple charts and a summary table
 
-- **Screenshots:** *(add gameplay and data screenshots in `screenshots/` folder)*
+- **Screenshots:**
+  Gameplay screenshots are stored in `screenshots/gameplay/`, and data visualization screenshots are stored in `screenshots/visualization/`.
 
-- **Proposal:** [Project Proposal PDF](./6810545441_Programming%202%20(Project%20requirement%20and%20Proposal%20template).pdf)
+- **Proposal:**
+  [Project Proposal PDF](./6810545441_Programming%202%20(Project%20requirement%20and%20Proposal%20template).pdf)
 
-- **YouTube Presentation:** *(link to be added)*
+- **YouTube Presentation:**
+  Add the final presentation link here before submission.
 
 ---
 
@@ -43,34 +40,29 @@
 
 ### 2.1 Background
 
-The project was inspired by classic head-to-head browser football games (e.g., Head Soccer) and the
-friendly rivalry between SKE and CPE departments at Kasetsart University. The goal was to build
-something that is immediately fun to pick up while also having a deeper data layer — something
-that makes re-playing the game worthwhile beyond just the gameplay itself.
+This project was inspired by simple competitive football games where two players can start playing immediately without a long learning curve. The SKE versus CPE theme gives the project a clear identity, while the statistics component makes the game more interesting beyond a single round.
 
-Collecting and visualising match statistics turns every session into a small experiment: Does
-having more possession lead to winning? Does shot accuracy improve over multiple matches? These
-questions make the data component meaningful rather than decorative.
+Instead of ending the experience when the match is over, the project keeps useful data and turns it into charts. This makes the game feel more complete because players can compare results, observe gameplay patterns, and understand how specific actions relate to winning or losing.
 
 ### 2.2 Objectives
 
-- Implement a complete, playable 2-player football game with real-time physics
-- Apply object-oriented design principles across all game components
-- Record detailed per-second match statistics automatically during gameplay
-- Visualise the collected data with clear, informative charts and summaries
-- Provide a polished user experience: animated menus, skin selection, sound effects
+- Build a complete playable 2-player football game in Python
+- Apply object-oriented programming to separate responsibilities clearly
+- Record gameplay data automatically during matches
+- Present collected data through readable charts and summaries
+- Provide a polished user experience through menus, skin selection, and sound
 
 ---
 
 ## 3. UML Class Diagram
 
-*(Attach as PDF — see `UML.pdf`)*
+The UML class diagram is included as a separate PDF file in the repository submission.
 
-The diagram includes the following classes and their relationships:
+Main class relationships:
 
-- `Game` aggregates `Player` (×2), `Ball`, `Goal` (×2), `Menu`, `Timer`, `DataLogger`, `SoundManager`
-- `SkinManager` composes `Skin` objects and is used during skin selection
-- `Player` depends on `Ball` for collision and kick logic
+- `Game` owns and coordinates `Player`, `Ball`, `Goal`, `Menu`, `Timer`, `DataLogger`, and `SoundManager`
+- `Player` interacts with `Ball` through collision and kick behavior
+- `SkinManager` contains `Skin` objects for inventory and selection management
 
 ---
 
@@ -78,16 +70,16 @@ The diagram includes the following classes and their relationships:
 
 | Class | Module | Role |
 |-------|--------|------|
-| `Game` | `football_game/game.py` | Central controller — manages the state machine (menu → skin select → countdown → gameplay → game over → stats), coordinates all subsystems, and holds the main game loop |
-| `Player` | `football_game/player.py` | Represents a player character. Handles movement input, jump physics, kick mechanics, collision with the ball and other player, and sprite rendering |
-| `Ball` | `football_game/ball.py` | Simulates ball physics — gravity, air resistance, ground friction, wall/ground bounce — and handles drawing |
-| `Goal` | `football_game/goal.py` | Defines a goal area (left or right) and checks whether the ball has entered it |
-| `Menu` | `football_game/menu.py` | Renders the animated main menu (pitch stripes, floating particles, pulsing VS badge, navigation buttons). Also provides the `draw_tutorial()` function for the How To Play screen |
-| `Timer` | `football_game/timer.py` | Tracks elapsed match time, provides a `time_left` value, and renders the on-screen countdown |
-| `DataLogger` | `football_game/data_logger.py` | Creates and appends rows to `game_data.csv`. Manages match IDs and CSV headers |
-| `SoundManager` | `football_game/sound_manager.py` | Synthesises and plays sound effects (kick thud, goal cheer) using NumPy arrays; falls back to WAV files in `assets/sounds/` if present |
-| `SkinManager` | `football_game/skin_manager.py` | Manages a pool of `Skin` objects, player inventories, and currently equipped skins |
-| `Skin` | `football_game/skin_manager.py` | Data class holding a skin's name and its head/leg pygame Surface images |
+| `Game` | `football_game/game.py` | Central controller for the full game loop and state transitions, including menu flow, skin selection, gameplay, results, logging, and chart access |
+| `Player` | `football_game/player.py` | Stores player position and movement state, handles jumping and kicking, and manages collisions with the ball and the other player |
+| `Ball` | `football_game/ball.py` | Simulates the football using velocity, gravity, bounce, air resistance, and boundary checks |
+| `Goal` | `football_game/goal.py` | Represents a goal area and checks whether the ball has entered it |
+| `Menu` | `football_game/menu.py` | Draws the animated main menu and handles menu navigation; the same module also contains the tutorial screen drawing function |
+| `Timer` | `football_game/timer.py` | Tracks elapsed match time and renders the countdown display |
+| `DataLogger` | `football_game/data_logger.py` | Creates the CSV file if needed, maintains headers, determines the next match ID, and appends match rows |
+| `SoundManager` | `football_game/sound_manager.py` | Synthesizes and plays match sound effects such as start, goal, timeout, and kick sounds |
+| `SkinManager` | `football_game/skin_manager.py` | Stores available skins, player inventories, and equipped skins |
+| `Skin` | `football_game/skin_manager.py` | Represents a skin entry containing a name and image surfaces for the player's head and leg |
 
 ---
 
@@ -95,74 +87,87 @@ The diagram includes the following classes and their relationships:
 
 ### 5.1 Data Recording Method
 
-`DataLogger` appends one CSV row per second of gameplay (triggered by `log_stats_once_per_second()`
-inside the main game loop). Each row captures a snapshot of the match state at that second.
-Data is stored in `game_data.csv` at the project root and persists across sessions.
+The project stores gameplay data in `game_data.csv`. Each row represents a time-based gameplay snapshot and is appended by the logging layer during play. The analysis tools read this CSV and aggregate the data by match and by time.
+
+The project provides two ways to view the data:
+
+- `data_analyze.py` generates `stats/stats_dashboard.png` and opens a desktop viewer
+- `football_game/chart_viewer.py` renders charts inside the game interface
 
 ### 5.2 Data Features
 
+The repository uses the following match data columns:
+
 | Feature | Description |
 |---------|-------------|
-| `match_id` | Unique integer ID, incremented each new game |
-| `time` | Elapsed seconds since match start (0–60) |
-| `match_duration` | Total match duration (always 60) |
-| `ball_speed` | Euclidean speed of the ball (√(vx²+vy²)) |
-| `score_p1` | Goals scored by SKE (Player 1) |
-| `score_p2` | Goals scored by CPE (Player 2) |
-| `score_diff` | `score_p1 − score_p2` |
-| `kicks_p1` | Cumulative kicks by SKE |
-| `kicks_p2` | Cumulative kicks by CPE |
-| `jumps_p1` | Cumulative jumps by SKE |
-| `jumps_p2` | Cumulative jumps by CPE |
-| `possession` | Approximate possession % for SKE (distance-based) |
-| `ball_zone` | Current ball zone: LEFT / CENTER / RIGHT |
-| `attacking_side` | SKE_ATTACK / CPE_ATTACK / NEUTRAL |
-| `touches_p1` | Cumulative ball touch events for SKE |
-| `touches_p2` | Cumulative ball touch events for CPE |
-| `shots_p1` | Shots on goal by SKE (kicks aimed toward CPE net) |
-| `shots_p2` | Shots on goal by CPE |
-| `winner` | Match result: `p1` / `p2` / `draw` |
+| `match_id` | Match identifier used to group rows from the same game |
+| `time` | Time index of the recorded gameplay snapshot |
+| `match_duration` | Total configured match duration for that logged session |
+| `ball_speed` | Speed of the ball at that recorded moment |
+| `score_p1` | Score of Player 1 / SKE at that moment |
+| `score_p2` | Score of Player 2 / CPE at that moment |
+| `score_diff` | Difference between `score_p1` and `score_p2` |
+| `kicks_p1` | Number of kicks by Player 1 up to that moment |
+| `kicks_p2` | Number of kicks by Player 2 up to that moment |
+| `jumps_p1` | Number of jumps by Player 1 up to that moment |
+| `jumps_p2` | Number of jumps by Player 2 up to that moment |
+| `possession` | Possession-related value used by the visualization layer when summarizing control of play |
+| `ball_zone` | Zone of the field where the ball is located |
+| `attacking_side` | Which side is applying pressure at that moment |
+| `touches_p1` | Ball touches by Player 1 |
+| `touches_p2` | Ball touches by Player 2 |
+| `shots_p1` | Shot attempts by Player 1 |
+| `shots_p2` | Shot attempts by Player 2 |
+| `winner` | Encoded match result label used by the statistics pipeline |
 
-The analysis script (`data_analyze.py`) aggregates this data across all matches and produces
-a 9-panel dashboard saved to `stats/stats_dashboard.png`.
+### 5.3 Visualized Outputs
+
+The dashboard and viewer present:
+
+- Final score by match
+- Win rate and win record
+- Shot accuracy by match
+- Kicks per match
+- Jumps per match
+- Total shots and touches
+- Average score difference over time
+- Average possession summary
+- Possession versus result comparison
+- Summary statistics table
 
 ---
 
 ## 6. Changed Proposed Features
 
-All features were implemented as proposed.
+The final version keeps the original idea of a football game plus statistics, but the implementation was expanded with a stronger presentation layer:
+
+- Added a dedicated skin selection screen
+- Added an in-game chart viewer in addition to the exported dashboard image
+- Expanded menu presentation and tutorial visuals
+- Improved generated sound effects and visual polish
 
 ---
 
 ## 7. External Sources
 
-### AI-Generated Assets
-- **assets/field.png** — Generated with Google Gemini  
-  Prompt: "Generate a top-down football/soccer pitch with dirt/earth theme 
-  for use as a background in a Pygame game. Include field markings, 
-  penalty areas, center circle, and CPSK and KU85 signage on the sidelines."
+### Libraries
 
-- **assets/ball.png** — Generated with Google Gemini  
-  Prompt: "Draw a simple cartoon soccer ball for use in a Pygame game."
+- **Pygame** — game framework  
+  https://www.pygame.org
 
-- **Character head sprites** — Generated programmatically with Python/Pillow via Claude (Anthropic).  
-  Prompt: "Draw cartoon football player faces inspired by real footballers:  
-  Haaland (blonde man bun), Vinícius Jr. (curly black hair, dark skin),  
-  De Bruyne (spiky blonde), Salah (curly dark hair, beard), Beckham (spiky brown).  
-  Use PIL drawing primitives only, no external images."
+- **pandas** — data processing  
+  https://pandas.pydata.org
 
-- **Boot sprites** (halal_leg.png, visus_leg.png, theboy_leg.png, 
-  para_leg.png, beckhum_leg.png) — Generated programmatically with 
-  Python/Pillow via Claude (Anthropic).  
-  Prompt: "Redesign football boot sprites to match a reference image of 
-  a dark charcoal boot with coloured accent panel. Draw using PIL ellipse 
-  and polygon primitives only. Generate one base boot (halal_leg.png) then 
-  recolour the accent area for each skin: green (VISUS), blue (THE BOY), 
-  orange (PARA), purple (BECKHUM)."
+- **matplotlib** — chart rendering  
+  https://matplotlib.org
 
-- **Sound effects** (kick.wav, goal.wav, start_whistle.wav, timeout.wav)  
-  — Synthesised programmatically with NumPy via Claude (Anthropic).  
-  No external audio files were used. All sounds are generated from mathematical  
-  waveforms (sine waves, noise bursts, exponential decay) at runtime.  
-  Prompt given to Claude: "Create realistic football game sound effects —  
-  kick thud, goal crowd cheer, start bell, and end gong — using NumPy synthesis"
+- **NumPy** — numerical processing and sound synthesis  
+  https://numpy.org
+
+### Project Assets
+
+- **`assets/field.png`** — generated specifically for this project
+- **`assets/ball.png`** — generated specifically for this project
+- **Character head sprites** — generated programmatically for this project
+- **Boot sprites** — generated programmatically for this project
+- **Sound effects** — synthesized programmatically for this project
