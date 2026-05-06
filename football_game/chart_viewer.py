@@ -1,20 +1,13 @@
-"""
-chart_viewer.py  — In-game interactive chart browser for CPSK Football Game
-Renders matplotlib charts directly onto the Pygame screen via the Agg backend.
-Called from game.py as:  run_chart_viewer(screen, clock)
-"""
-
 import io
 import os
 import pygame
 import numpy as np
 import pandas as pd
 import matplotlib
-matplotlib.use("Agg")                       # must stay before pyplot import
+matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 import matplotlib.gridspec as gridspec
 
-# ── Colours (match data_analyze palette) ──────────────────────────────────────
 SKE_YELLOW = "#F5C518"
 CPE_BLUE   = "#4A9EE0"
 DRAW_GRAY  = "#AAAAAA"
@@ -34,7 +27,6 @@ CAT_COLOR_HEX = {
     "SUMMARY STATS":   C4,
 }
 
-# Pygame colours
 PG_BG        = (18, 44, 18)
 PG_TOPBAR    = (12, 30, 12)
 PG_BOTBAR    = (10, 26, 10)
@@ -46,9 +38,7 @@ PG_BTN_HOV   = (60, 120,  60)
 PG_HINT      = (120, 150, 120)
 
 
-# ── Data loader ───────────────────────────────────────────────────────────────
 def _load_data():
-    """Return (df, last, avg_by_time, merged, stats_dict) or None if no CSV."""
     csv = "game_data.csv"
     if not os.path.exists(csv):
         return None
@@ -81,7 +71,6 @@ def _load_data():
                 ske_wr=ske_wr, cpe_wr=cpe_wr, acc_p1=acc_p1, acc_p2=acc_p2)
 
 
-# ── Style helper ──────────────────────────────────────────────────────────────
 def _style(ax, title="", xlabel="", ylabel="", fs=13, cat_color=TEXT):
     ax.set_facecolor("#EEF7EE")
     for sp in ["top", "right"]:
@@ -96,10 +85,7 @@ def _style(ax, title="", xlabel="", ylabel="", fs=13, cat_color=TEXT):
     ax.set_axisbelow(True)
 
 
-# ── Draw functions (one per panel) ───────────────────────────────────────────
 def _make_draw_fns(d):
-    """Return list of (label, category, draw_fn(ax)) tuples given loaded data dict d."""
-
     last        = d["last"]
     avg_by_time = d["avg_by_time"]
     merged      = d["merged"]
@@ -310,9 +296,7 @@ def _make_draw_fns(d):
     ]
 
 
-# ── matplotlib → pygame Surface ───────────────────────────────────────────────
 def _render_to_surface(draw_fn, width, height):
-    """Render one chart to a pygame Surface via Agg → BytesIO."""
     dpi   = 110
     fig_w = width  / dpi
     fig_h = height / dpi
@@ -329,7 +313,6 @@ def _render_to_surface(draw_fn, width, height):
     return pygame.image.load(buf, "chart.png").convert()
 
 
-# ── Helpers ───────────────────────────────────────────────────────────────────
 def _hex_to_pg(h):
     h = h.lstrip("#")
     return tuple(int(h[i:i+2], 16) for i in (0, 2, 4))
@@ -343,15 +326,9 @@ def _arrow_polygon(cx, cy, size, direction="left"):
     return [(cx - size, cy - size), (cx + size, cy), (cx - size, cy + size)]
 
 
-# ── Main viewer loop ──────────────────────────────────────────────────────────
 def run_chart_viewer(screen, clock):
-    """
-    Full-screen in-game chart browser.
-    Returns when the user presses ESC or closes the viewer.
-    """
     W, H = screen.get_size()
 
-    # ── Load data ──────────────────────────────────────────────────────────────
     data = _load_data()
     if data is None:
         _draw_no_data(screen, W, H)
@@ -364,17 +341,14 @@ def run_chart_viewer(screen, clock):
     total      = data["total"]
     n_panels   = len(panels)
 
-    # ── State ──────────────────────────────────────────────────────────────────
-    idx        = 0          # current panel index
-    cache      = {}         # {idx: pygame.Surface}
+    idx        = 0
+    cache      = {}
 
-    # Chart area
-    TOP_H   = 56            # header bar height
-    BOT_H   = 38            # footer bar height
+    TOP_H   = 56
+    BOT_H   = 38
     CHART_H = H - TOP_H - BOT_H
     CHART_W = W
 
-    # ── Font setup ─────────────────────────────────────────────────────────────
     pygame.font.init()
     fn_bold  = pygame.font.SysFont("Avenir Next Condensed", 22, bold=True)
     fn_med   = pygame.font.SysFont("Avenir Next Condensed", 18, bold=False)
@@ -383,7 +357,6 @@ def run_chart_viewer(screen, clock):
 
     def get_surface(i):
         if i not in cache:
-            # Show loading indicator
             loading_surf = pygame.Surface((CHART_W, CHART_H))
             loading_surf.fill((20, 50, 20))
             lbl = panels[i][0]
@@ -395,10 +368,8 @@ def run_chart_viewer(screen, clock):
             cache[i] = _render_to_surface(panels[i][2], CHART_W, CHART_H)
         return cache[i]
 
-    # Pre-render current panel immediately
     get_surface(idx)
 
-    # NAV button rects (in header)
     NAV_BTN_W, NAV_BTN_H = 44, 36
     btn_prev = pygame.Rect(8, (TOP_H - NAV_BTN_H)//2, NAV_BTN_W, NAV_BTN_H)
     btn_next = pygame.Rect(W - NAV_BTN_W - 8, (TOP_H - NAV_BTN_H)//2,
@@ -422,7 +393,6 @@ def run_chart_viewer(screen, clock):
                 elif event.key in (pygame.K_LEFT, pygame.K_a):
                     idx = (idx - 1) % n_panels
                     get_surface(idx)
-                # Number keys 1-4 jump to first panel of each category
                 elif event.key == pygame.K_1:
                     idx = 0; get_surface(idx)
                 elif event.key == pygame.K_2:
@@ -440,35 +410,26 @@ def run_chart_viewer(screen, clock):
                     idx = (idx + 1) % n_panels
                     get_surface(idx)
 
-        # ── Draw ──────────────────────────────────────────────────────────────
         label, category, _ = panels[idx]
         cat_color_pg = _hex_to_pg(CAT_COLOR_HEX[category])
 
-        # — Header bar —
         pygame.draw.rect(screen, PG_TOPBAR, (0, 0, W, TOP_H))
-        # Category accent strip (left 6px)
         pygame.draw.rect(screen, cat_color_pg, (0, 0, 6, TOP_H))
 
-        # PREV button
         prev_col = PG_BTN_HOV if btn_prev.collidepoint(mouse_pos) else PG_BTN_DARK
         _draw_pill(screen, btn_prev, prev_col, 8)
         pts_l = _arrow_polygon(btn_prev.centerx, btn_prev.centery, 8, "left")
         pygame.draw.polygon(screen, PG_WHITE, pts_l)
 
-        # NEXT button
         next_col = PG_BTN_HOV if btn_next.collidepoint(mouse_pos) else PG_BTN_DARK
         _draw_pill(screen, btn_next, next_col, 8)
         pts_r = _arrow_polygon(btn_next.centerx, btn_next.centery, 8, "right")
         pygame.draw.polygon(screen, PG_WHITE, pts_r)
 
-        # Category label (coloured)
         cat_surf = fn_med.render(category, True, cat_color_pg)
-        # Chart name (white)
         chart_surf = fn_bold.render(label, True, PG_WHITE)
-        # Counter  e.g.  3 / 10
         counter_surf = fn_med.render(f"{idx+1} / {n_panels}", True, PG_GRAY)
 
-        # Lay out: [PREV] [cat · label] [counter] [NEXT]
         center_x = W // 2
         cat_surf_w = cat_surf.get_width()
         sep_surf   = fn_med.render("  |  ", True, (80, 110, 80))
@@ -481,9 +442,7 @@ def run_chart_viewer(screen, clock):
         screen.blit(chart_surf, (start_x + cat_surf_w + sep_surf.get_width(), ty))
         screen.blit(counter_surf, counter_surf.get_rect(right=btn_next.left - 14, centery=TOP_H//2))
 
-        # — Chart area —
         chart_surf_img = get_surface(idx)
-        # Scale to fit if needed
         cw, ch = chart_surf_img.get_size()
         if (cw, ch) != (CHART_W, CHART_H):
             chart_surf_img = pygame.transform.smoothscale(
@@ -491,17 +450,14 @@ def run_chart_viewer(screen, clock):
             cache[idx] = chart_surf_img
         screen.blit(chart_surf_img, (0, TOP_H))
 
-        # — Category indicator strip under chart —
         pygame.draw.rect(screen, cat_color_pg, (0, TOP_H + CHART_H, W, 3))
 
-        # — Footer bar —
         pygame.draw.rect(screen, PG_BOTBAR, (0, H - BOT_H, W, BOT_H))
         hints = ("LEFT / RIGHT  navigate     1 Match Overview  "
                  "2 Player Activity  3 Gameplay Flow  4 Summary     ESC back")
         hint_surf = fn_small.render(hints, True, PG_HINT)
         screen.blit(hint_surf, hint_surf.get_rect(center=(W//2, H - BOT_H//2)))
 
-        # Cursor
         on_btn = btn_prev.collidepoint(mouse_pos) or btn_next.collidepoint(mouse_pos)
         pygame.mouse.set_cursor(
             pygame.SYSTEM_CURSOR_HAND if on_btn else pygame.SYSTEM_CURSOR_ARROW
@@ -513,7 +469,6 @@ def run_chart_viewer(screen, clock):
     pygame.mouse.set_cursor(pygame.SYSTEM_CURSOR_ARROW)
 
 
-# ── No-data fallback ──────────────────────────────────────────────────────────
 def _draw_no_data(screen, W, H):
     screen.fill(PG_BG)
     fn = pygame.font.SysFont("Avenir Next Condensed", 32, bold=True)

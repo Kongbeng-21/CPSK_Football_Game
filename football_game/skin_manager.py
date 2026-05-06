@@ -23,21 +23,17 @@ class SkinManager:
             "p2": None,
         }
 
-        # Register built-in skins
         self._register(Skin("SKE", ske_head, ske_leg))
         self._register(Skin("CPE", cpe_head, cpe_leg))
 
-        # Default loadout
         self.equip_skin("p1", "SKE")
         self.equip_skin("p2", "CPE")
 
-        # Give both players all available skins by default
         for skin in self.available_skins:
             self.add_skin("p1", skin.name)
             self.add_skin("p2", skin.name)
 
     def _register(self, skin: Skin):
-        """Add a skin to the global available pool."""
         self.available_skins.append(skin)
 
     def _get_skin(self, name: str):

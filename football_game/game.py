@@ -80,14 +80,12 @@ class Game:
         self.match_id  = self.logger.get_next_match_id() - 1
         self.countdown_start_ticks = 0
 
-        # Bundled font — identical metrics on macOS, Windows, Linux
         _FONT_FILE  = os.path.join("assets", "fonts", "DejaVuSansCondensed-Bold.ttf")
         if os.path.exists(_FONT_FILE):
             self.font_big   = pygame.font.Font(_FONT_FILE, 80)
             self.font_mid   = pygame.font.Font(_FONT_FILE, 40)
             self.font_score = pygame.font.Font(_FONT_FILE, 64)
         else:
-            # Fallback if font file is missing
             self.font_big   = pygame.font.SysFont("Arial", 80, bold=True)
             self.font_mid   = pygame.font.SysFont("Arial", 40, bold=True)
             self.font_score = pygame.font.SysFont("Arial", 64, bold=True)
@@ -154,7 +152,6 @@ class Game:
         self.prev_kicks = 0
         self.prev_jumps = 0
 
-        # Always re-apply current skins after reset so images are never stale
         self.player1.head_img, self.player1.leg_img = self._load_skin_imgs(self.skin_p1, flip=False)
         self.player2.head_img, self.player2.leg_img = self._load_skin_imgs(self.skin_p2, flip=True)
 
@@ -200,7 +197,6 @@ class Game:
         return "DRAW"
 
     def _open_chart_viewer(self):
-        """Open the in-game chart viewer (runs inside pygame, no external window)."""
         run_chart_viewer(self.screen, self.clock)
 
     def update_touch_stats(self):
@@ -481,41 +477,34 @@ class Game:
                     self.screen.blit(dot_r, dot_r.get_rect(center=(cx + 70, wr_y + 40)))
                     self.screen.blit(w_cpe, w_cpe.get_rect(center=(rx,      wr_y + 40)))
 
-                # ── "VIEW FULL CHARTS" button ─────────────────────────────────
                 btn_w, btn_h = 340, 50
                 btn_x = cx - btn_w // 2
                 btn_y = H - 108
 
                 mouse_pos = pygame.mouse.get_pos()
                 btn_rect  = pygame.Rect(btn_x, btn_y, btn_w, btn_h)
-                self._stats_btn_rect = btn_rect   # store for click detection
+                self._stats_btn_rect = btn_rect
                 btn_hovered = btn_rect.collidepoint(mouse_pos)
 
-                # Button shadow
                 shadow_rect = pygame.Rect(btn_x + 3, btn_y + 3, btn_w, btn_h)
                 shadow_surf = pygame.Surface((btn_w, btn_h), pygame.SRCALPHA)
                 shadow_surf.fill((0, 0, 0, 80))
                 self.screen.blit(shadow_surf, shadow_rect.topleft)
 
-                # Button fill
                 btn_color = (255, 225, 60) if btn_hovered else (220, 190, 0)
                 pygame.draw.rect(self.screen, btn_color, btn_rect, border_radius=10)
 
-                # Button icon strip (left edge accent)
                 pygame.draw.rect(self.screen, (30, 100, 30),
                                  (btn_x, btn_y, 6, btn_h), border_radius=10)
 
-                # Button label
                 btn_font  = pygame.font.SysFont("Avenir Next Condensed", 26, bold=True)
                 btn_text  = btn_font.render("  VIEW FULL CHARTS", True, (15, 30, 15))
                 self.screen.blit(btn_text, btn_text.get_rect(center=btn_rect.center))
 
-                # Cursor change on hover
                 pygame.mouse.set_cursor(
                     pygame.SYSTEM_CURSOR_HAND if btn_hovered else pygame.SYSTEM_CURSOR_ARROW
                 )
 
-                # Hints
                 hint1 = hint_font.render("[ C ] open charts   |   ESC return to menu", True, (155, 175, 155))
                 self.screen.blit(hint1, hint1.get_rect(center=(cx, H - 26)))
 
@@ -591,11 +580,8 @@ class Game:
                 self.player2.draw(self.screen)
                 self.ball.draw(self.screen)
 
-                # Center scores on the scoreboard boxes in field.png (scaled to 1280×720)
-                # SKE box center ≈ (544, 82)   CPE box center ≈ (736, 82)
                 left_score  = self.font_score.render(str(self.score_p1), True, (255, 255, 255))
                 right_score = self.font_score.render(str(self.score_p2), True, (255, 255, 255))
-                # Center on the actual score boxes in field.png (measured at 1280×720)
                 self.screen.blit(left_score,  left_score.get_rect(center=(505, 105)))
                 self.screen.blit(right_score, right_score.get_rect(center=(776, 105)))
 
