@@ -19,6 +19,21 @@ from football_game.chart_viewer import run_chart_viewer
 WIDTH = 1280
 HEIGHT = 720
 
+# Physical key scancodes — work regardless of keyboard language (Thai/English)
+SC_A      = 4   # physical 'A' key → Player1 left
+SC_D      = 7   # physical 'D' key → Player1 right
+SC_W      = 26  # physical 'W' key → Player1 jump
+SC_E      = 8   # physical 'E' key → Player1 kick
+SC_H      = 11  # physical 'H' key → tutorial
+SC_C      = 6   # physical 'C' key → chart viewer
+SC_LEFT   = 80  # Left arrow  → Player2 left
+SC_RIGHT  = 79  # Right arrow → Player2 right
+SC_UP     = 82  # Up arrow    → Player2 jump
+SC_SPACE  = 44  # Space       → Player2 kick
+SC_ESCAPE = 41  # Escape
+SC_RETURN = 40  # Enter/Return
+SC_DOWN   = 81  # Down arrow
+
 class Game:
     def __init__(self):
         self.screen = pygame.display.set_mode((WIDTH, HEIGHT))
@@ -61,18 +76,20 @@ class Game:
         p2_head, p2_leg = _load_skin_imgs(self.skin_p2, flip=True)
 
         self.player1 = Player(200, p1_head, p1_leg, {
-            "left": pygame.K_a,
-            "right": pygame.K_d,
-            "jump": pygame.K_w,
-            "kick": pygame.K_e
+            "left": SC_A,
+            "right": SC_D,
+            "jump": SC_W,
+            "kick": SC_E
         })
 
         self.player2 = Player(1000, p2_head, p2_leg, {
-            "left": pygame.K_LEFT,
-            "right": pygame.K_RIGHT,
-            "jump": pygame.K_UP,
-            "kick": pygame.K_SPACE
+            "left": SC_LEFT,
+            "right": SC_RIGHT,
+            "jump": SC_UP,
+            "kick": SC_SPACE
         })
+
+        self._scan_pressed = set()   # tracks physical keys via scancode
 
         self.ball = Ball()
         self.state = "menu"
@@ -253,11 +270,17 @@ class Game:
                     pygame.quit()
                     sys.exit()
 
+                # Track physical key state via scancode (Thai/English layout safe)
+                if event.type == pygame.KEYDOWN:
+                    self._scan_pressed.add(event.scancode)
+                elif event.type == pygame.KEYUP:
+                    self._scan_pressed.discard(event.scancode)
+
                 if self.state == "menu":
                     self.menu.handle_input(event)
 
                     if event.type == pygame.KEYDOWN:
-                        if event.key == pygame.K_h:
+                        if event.scancode == SC_H:
                             self.state = "tutorial"
 
                     if self.menu.start_game:
@@ -278,14 +301,14 @@ class Game:
 
                 elif self.state == "tutorial":
                     if event.type == pygame.KEYDOWN:
-                        if event.key == pygame.K_ESCAPE:
+                        if event.scancode == SC_ESCAPE:
                             self.state = "menu"
 
                 elif self.state == "stats":
                     if event.type == pygame.KEYDOWN:
-                        if event.key == pygame.K_ESCAPE:
+                        if event.scancode == SC_ESCAPE:
                             self.state = "menu"
-                        elif event.key == pygame.K_c:
+                        elif event.scancode == SC_C:
                             self._open_chart_viewer()
                     elif event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
                         if hasattr(self, "_stats_btn_rect") and self._stats_btn_rect.collidepoint(event.pos):
@@ -293,15 +316,15 @@ class Game:
 
                 elif self.state == "gameplay":
                     if event.type == pygame.KEYDOWN:
-                        if event.key == pygame.K_w:
+                        if event.scancode == SC_W:
                             if self.player1.vy == 0:
                                 self.jumps_p1 += 1
 
-                        if event.key == pygame.K_UP:
+                        if event.scancode == SC_UP:
                             if self.player2.vy == 0:
                                 self.jumps_p2 += 1
 
-                        if event.key == pygame.K_e:
+                        if event.scancode == SC_E:
                             if self.is_kick_in_range(self.player1):
                                 if self.player1.facing_right:
                                     self.shots_p1 += 1
@@ -310,7 +333,7 @@ class Game:
                             self.player1.kick(self.ball)
                             self.kicks_p1 += 1
 
-                        if event.key == pygame.K_SPACE:
+                        if event.scancode == SC_SPACE:
                             if self.is_kick_in_range(self.player2):
                                 if not self.player2.facing_right:
                                     self.shots_p2 += 1
@@ -319,14 +342,13 @@ class Game:
                             self.player2.kick(self.ball)
                             self.kicks_p2 += 1
 
-
                 elif self.state == "game_over":
                     if event.type == pygame.KEYDOWN:
-                        if event.key == pygame.K_UP:
+                        if event.scancode == SC_UP:
                             self.gameover_selected = (self.gameover_selected - 1) % 2
-                        elif event.key == pygame.K_DOWN:
+                        elif event.scancode == SC_DOWN:
                             self.gameover_selected = (self.gameover_selected + 1) % 2
-                        elif event.key == pygame.K_RETURN:
+                        elif event.scancode == SC_RETURN:
                             if self.gameover_selected == 0:
                                 self.reset_game()
                                 self.state = "countdown"
@@ -549,7 +571,7 @@ class Game:
                 if self.timer.is_time_up():
                     self.state = "game_over"
 
-                keys = pygame.key.get_pressed()
+                keys = self._scan_pressed   # scancode-based: Thai/English layout safe
 
                 self.player1.move(keys)
                 self.player2.move(keys)

@@ -81,9 +81,11 @@ This saves `stats/stats_dashboard.png` and opens a desktop viewer for browsing i
 
 | Action | Player 1 (SKE) | Player 2 (CPE) |
 |--------|----------------|----------------|
-| Move   | `A` / `D`      | `Left` / `Right` |
-| Jump   | `W`            | `Up` |
+| Move   | `A` / `D`      | `←` / `→` |
+| Jump   | `W`            | `↑` |
 | Kick   | `E`            | `Space` |
+
+> **Note:** Controls are mapped to physical key positions and work with both English and Thai keyboard layouts.
 
 ### Game Flow
 

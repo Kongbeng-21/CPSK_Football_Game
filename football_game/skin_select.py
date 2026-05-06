@@ -33,20 +33,31 @@ def run_skin_select(screen, clock):
     sel   = [2, 1]
     ready = [False, False]
 
+    # Use scancodes so controls work with both Thai and English keyboard layouts
+    # Scancode = physical key position, independent of input language
+    SC_A     = 4   # physical 'A' → P1 left
+    SC_D     = 7   # physical 'D' → P1 right
+    SC_E     = 8   # physical 'E' → P1 confirm
+    SC_LEFT  = 80  # Left arrow   → P2 left
+    SC_RIGHT = 79  # Right arrow  → P2 right
+    SC_SPACE = 44  # Space        → P2 confirm
+
     PLAYERS = [
         {
             "label":   "PLAYER 1",
             "color":   (255, 210,  50),
-            "left":    pygame.K_a,
-            "right":   pygame.K_d,
-            "confirm": pygame.K_e,
+            "left":    SC_A,
+            "right":   SC_D,
+            "confirm": SC_E,
+            "hint_left": "A", "hint_right": "D", "hint_confirm": "E",
         },
         {
             "label":   "PLAYER 2",
             "color":   (80,  170, 255),
-            "left":    pygame.K_LEFT,
-            "right":   pygame.K_RIGHT,
-            "confirm": pygame.K_SPACE,
+            "left":    SC_LEFT,
+            "right":   SC_RIGHT,
+            "confirm": SC_SPACE,
+            "hint_left": "←", "hint_right": "→", "hint_confirm": "SPACE",
         },
     ]
 
@@ -61,14 +72,14 @@ def run_skin_select(screen, clock):
             if event.type == pygame.KEYDOWN:
                 for i, p in enumerate(PLAYERS):
                     if not ready[i]:
-                        if event.key == p["left"]:
+                        if event.scancode == p["left"]:
                             sel[i] = (sel[i] - 1) % len(SKINS)
-                        if event.key == p["right"]:
+                        if event.scancode == p["right"]:
                             sel[i] = (sel[i] + 1) % len(SKINS)
-                        if event.key == p["confirm"]:
+                        if event.scancode == p["confirm"]:
                             ready[i] = True
                     else:
-                        if event.key == p["confirm"]:
+                        if event.scancode == p["confirm"]:
                             ready[i] = False
 
         if all(ready):
@@ -128,15 +139,15 @@ def run_skin_select(screen, clock):
                 if is_cur:
                     pygame.draw.circle(screen, WHITE, (start_x + j * 26, dot_y), r, 2)
 
-            key_l = pygame.key.name(p["left"]).upper()
-            key_r = pygame.key.name(p["right"]).upper()
-            key_c = pygame.key.name(p["confirm"]).upper()
+            key_l = p["hint_left"]
+            key_r = p["hint_right"]
+            key_c = p["hint_confirm"]
 
             if not ready[i]:
                 hint_str  = f"[{key_l}] < SELECT > [{key_r}]   CONFIRM: [{key_c}]"
                 hint_color = (160, 160, 160)
             else:
-                hint_str  = f"READY!   Press [{key_c}] again to change"
+                hint_str  = f"READY!  Press [{key_c}] again to change"
                 hint_color = GREEN
 
             hint = font_hint.render(hint_str, True, hint_color)

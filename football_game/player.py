@@ -32,18 +32,18 @@ class Player:
 
         self.radius = self.height // 2
 
-    def move(self, keys):
+    def move(self, pressed_scans):
         self.vx = 0
 
-        if keys[self.controls["left"]]:
+        if self.controls["left"] in pressed_scans:
             self.vx = -6
             self.facing_right = False
 
-        if keys[self.controls["right"]]:
+        if self.controls["right"] in pressed_scans:
             self.vx = 6
             self.facing_right = True
 
-        if keys[self.controls["jump"]]:
+        if self.controls["jump"] in pressed_scans:
             if self.y >= GROUND_Y:
                 self.vy = self.jump_power
 
