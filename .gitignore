@@ -37,3 +37,8 @@ Thumbs.db
 dist/
 build/
 *.egg-info/
+
+# Stats debug/temp files
+stats/_temp_chart.png
+stats/score_preview.png
+stats/scoreboard_debug.png
