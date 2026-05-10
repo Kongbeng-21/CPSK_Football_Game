@@ -19,20 +19,20 @@ from football_game.chart_viewer import run_chart_viewer
 WIDTH = 1280
 HEIGHT = 720
 
-# Physical key scancodes — work regardless of keyboard language (Thai/English)
-SC_A      = 4   # physical 'A' key → Player1 left
-SC_D      = 7   # physical 'D' key → Player1 right
-SC_W      = 26  # physical 'W' key → Player1 jump
-SC_E      = 8   # physical 'E' key → Player1 kick
-SC_H      = 11  # physical 'H' key → tutorial
-SC_C      = 6   # physical 'C' key → chart viewer
-SC_LEFT   = 80  # Left arrow  → Player2 left
-SC_RIGHT  = 79  # Right arrow → Player2 right
-SC_UP     = 82  # Up arrow    → Player2 jump
-SC_SPACE  = 44  # Space       → Player2 kick
-SC_ESCAPE = 41  # Escape
-SC_RETURN = 40  # Enter/Return
-SC_DOWN   = 81  # Down arrow
+
+SC_A      = 4
+SC_D      = 7
+SC_W      = 26
+SC_E      = 8
+SC_H      = 11
+SC_C      = 6
+SC_LEFT   = 80
+SC_RIGHT  = 79
+SC_UP     = 82
+SC_SPACE  = 44
+SC_ESCAPE = 41
+SC_RETURN = 40
+SC_DOWN   = 81
 
 class Game:
     def __init__(self):
@@ -89,7 +89,7 @@ class Game:
             "kick": SC_SPACE
         })
 
-        self._scan_pressed = set()   # tracks physical keys via scancode
+        self._scan_pressed = set()
 
         self.ball = Ball()
         self.state = "menu"
@@ -155,7 +155,7 @@ class Game:
         self.kicks_p2 = 0
         self.jumps_p1 = 0
         self.jumps_p2 = 0
-        
+
         self.touches_p1 = 0
         self.touches_p2 = 0
         self.shots_p1 = 0
@@ -270,7 +270,7 @@ class Game:
                     pygame.quit()
                     sys.exit()
 
-                # Track physical key state via scancode (Thai/English layout safe)
+
                 if event.type == pygame.KEYDOWN:
                     self._scan_pressed.add(event.scancode)
                 elif event.type == pygame.KEYUP:
@@ -294,10 +294,10 @@ class Game:
                     elif self.menu.show_stats:
                         self.state = "stats"
                         self.menu.show_stats = False
-                    
-                    elif self.menu.show_tutorial:       
-                        self.state = "tutorial"          
-                        self.menu.show_tutorial = False 
+
+                    elif self.menu.show_tutorial:
+                        self.state = "tutorial"
+                        self.menu.show_tutorial = False
 
                 elif self.state == "tutorial":
                     if event.type == pygame.KEYDOWN:
@@ -531,7 +531,6 @@ class Game:
                 self.screen.blit(hint1, hint1.get_rect(center=(cx, H - 26)))
 
 
-
             elif self.state == "countdown":
                 self.screen.blit(self.field, (0, 0))
 
@@ -571,7 +570,7 @@ class Game:
                 if self.timer.is_time_up():
                     self.state = "game_over"
 
-                keys = self._scan_pressed   # scancode-based: Thai/English layout safe
+                keys = self._scan_pressed
 
                 self.player1.move(keys)
                 self.player2.move(keys)

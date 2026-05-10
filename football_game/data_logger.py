@@ -30,7 +30,7 @@ class DataLogger:
             with open(self.filename, "w", newline="") as f:
                 writer = csv.writer(f)
                 writer.writerow(self.headers)
-                
+
     def get_next_match_id(self):
         max_match_id = 0
 

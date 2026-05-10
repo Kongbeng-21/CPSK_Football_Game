@@ -5,7 +5,7 @@ class Skin:
         self.name = name
         self.head_img = head_img
         self.leg_img = leg_img
-        
+
 
     def __repr__(self):
         return f"Skin({self.name})"

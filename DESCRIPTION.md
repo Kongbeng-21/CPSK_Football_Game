@@ -32,7 +32,7 @@
   [Project Proposal PDF](./6810545441_Programming%202%20(Project%20requirement%20and%20Proposal%20template).pdf)
 
 - **YouTube Presentation:**
-  Add the final presentation link here before submission.
+  https://youtu.be/m4nKpGndZvg
 
 ---
 
@@ -56,7 +56,7 @@ Instead of ending the experience when the match is over, the project keeps usefu
 
 ## 3. UML Class Diagram
 
-The UML class diagram is included as a separate PDF file in the repository submission.
+The UML class diagram is included as a separate PDF file in the repository submission: [UML.pdf](./UML.pdf)
 
 Main class relationships:
 

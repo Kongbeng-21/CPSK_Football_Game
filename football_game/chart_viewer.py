@@ -15,10 +15,10 @@ GREEN_DARK = "#1A5C1A"
 BG         = "#F4F8F4"
 TEXT       = "#1A1A1A"
 
-C1 = "#2E7D32"   # MATCH OVERVIEW
-C2 = "#1565C0"   # PLAYER ACTIVITY
-C3 = "#6A1B4D"   # GAMEPLAY FLOW
-C4 = "#BF360C"   # SUMMARY STATS
+C1 = "#2E7D32"
+C2 = "#1565C0"
+C3 = "#6A1B4D"
+C4 = "#BF360C"
 
 CAT_COLOR_HEX = {
     "MATCH OVERVIEW":  C1,
@@ -337,7 +337,7 @@ def run_chart_viewer(screen, clock):
         _wait_for_esc(screen, W, H, clock)
         return
 
-    panels     = _make_draw_fns(data)    # [(label, category, fn), ...]
+    panels     = _make_draw_fns(data)
     total      = data["total"]
     n_panels   = len(panels)
 

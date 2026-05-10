@@ -52,7 +52,7 @@ class Player:
 
         self.x += self.vx
         self.y += self.vy
-        
+
         self.x = max(0, self.x)
         self.x = min(1280 - self.width, self.x)
 
@@ -92,7 +92,7 @@ class Player:
 
             ball.vx = nx * 8
             ball.vy = ny * 6
-            
+
     def kick(self, ball):
         self.kicking = True
         self.kick_timer = 10
@@ -128,7 +128,7 @@ class Player:
             leg_y -= 10
 
         screen.blit(self.leg_img, (leg_x, leg_y))
-        
+
     def collide_with_player(self, other):
         px = self.x + self.width / 2
         py = self.y + self.head_h + self.leg_h / 2

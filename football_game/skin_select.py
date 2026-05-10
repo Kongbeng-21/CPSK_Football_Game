@@ -33,14 +33,13 @@ def run_skin_select(screen, clock):
     sel   = [2, 1]
     ready = [False, False]
 
-    # Use scancodes so controls work with both Thai and English keyboard layouts
-    # Scancode = physical key position, independent of input language
-    SC_A     = 4   # physical 'A' → P1 left
-    SC_D     = 7   # physical 'D' → P1 right
-    SC_E     = 8   # physical 'E' → P1 confirm
-    SC_LEFT  = 80  # Left arrow   → P2 left
-    SC_RIGHT = 79  # Right arrow  → P2 right
-    SC_SPACE = 44  # Space        → P2 confirm
+
+    SC_A     = 4
+    SC_D     = 7
+    SC_E     = 8
+    SC_LEFT  = 80
+    SC_RIGHT = 79
+    SC_SPACE = 44
 
     PLAYERS = [
         {

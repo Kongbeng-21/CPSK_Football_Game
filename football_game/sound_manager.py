@@ -31,7 +31,7 @@ def _syn_bell(freq=900, dur=0.55, vol=0.55):
 
 def _syn_start_bell(vol=0.55):
     ding     = _syn_bell(freq=920, dur=0.55, vol=vol)
-    gap_n    = int(0.18 * SR)   
+    gap_n    = int(0.18 * SR)
     gap      = np.zeros(gap_n, dtype=np.int16)
     combined = np.concatenate([ding, gap, ding, gap, ding])
     return _make_stereo(combined)
@@ -49,7 +49,7 @@ def _syn_gong(freq=90, dur=2.0, vol=0.60):
 
 def _syn_end_gong(vol=0.60):
     strike   = _syn_gong(freq=90, dur=2.0, vol=vol)
-    gap_n    = int(0.55 * SR)  
+    gap_n    = int(0.55 * SR)
     gap      = np.zeros(gap_n, dtype=np.int16)
     strike2  = _syn_gong(freq=80, dur=2.0, vol=vol*0.80)
     combined = np.concatenate([strike, gap, strike2])

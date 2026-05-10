@@ -112,7 +112,7 @@ class Menu:
         arc(W - m, m,     cr,  90, 180)
         arc(m,     H - m, cr, -90,   0)
         arc(W - m, H - m, cr, 180, 270)
-    
+
     def _draw_vignette(self, W, H):
         ov = pygame.Surface((W, H), pygame.SRCALPHA)
         ov.fill((0, 0, 0, 112))
